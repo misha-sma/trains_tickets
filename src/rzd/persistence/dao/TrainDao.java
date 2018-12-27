@@ -66,12 +66,12 @@ public class TrainDao {
 		try {
 			con = DBConnection.getDbConnection();
 			con.setAutoCommit(false);
-			String sql = "SELECT DISTINCT carriages.id_train  FROM carriages INNER JOIN (SELECT t1.id_train FROM "
-					+ "(SELECT * FROM trains_stations WHERE id_station=?) AS t1 INNER JOIN "
-					+ "(SELECT * FROM trains_stations WHERE id_station=?) AS t2 ON "
-					+ "(t1.id_train=t2.id_train AND t1.travel_time<t2.travel_time)) AS t3 ON (carriages.id_train=t3.id_train AND "
-					+ "departure_time>='" + dateStr + " 00:00:00' AND departure_time<='" + dateStr
-					+ " 23:59:59') ORDER BY carriages.id_train";
+			String sql = "SELECT DISTINCT carriages.id_train FROM carriages INNER JOIN (SELECT t1.id_train, t1.travel_time, t1.stay_time "
+					+ "FROM (SELECT * FROM trains_stations WHERE id_station=?) AS t1 INNER JOIN (SELECT * FROM trains_stations WHERE "
+					+ "id_station=?) AS t2 ON (t1.id_train=t2.id_train AND t1.travel_time<t2.travel_time)) AS t3 ON "
+					+ "(carriages.id_train=t3.id_train AND departure_time+(t3.travel_time+t3.stay_time)*interval '1 minute'>='"
+					+ dateStr + " 00:00:00' AND departure_time+(t3.travel_time+t3.stay_time)*interval '1 minute'<='"
+					+ dateStr + " 23:59:59') ORDER BY carriages.id_train";
 			ps = con.prepareStatement(sql);
 			ps.setInt(1, idDepartureStation);
 			ps.setInt(2, idDestinationStation);

@@ -91,7 +91,11 @@ select distinct carriages.id_train  from carriages inner join (select t1.id_trai
 (1 row)
 
 // на заданный день правильно
-select distinct carriages.id_train  from carriages inner join (select t1.id_train from (select * from trains_stations where id_station=1) as t1 inner join (select * from trains_stations where id_station=7) as t2 on (t1.id_train=t2.id_train and t1.travel_time<t2.travel_time)) as t3 on (carriages.id_train=t3.id_train and departure_time+t1.travel_time+t1.stay_time>='2018-12-14 00:00:00' and departure_time+t1.travel_time+t1.stay_time<='2018-12-14 23:59:59') order by carriages.id_train;
+select distinct carriages.id_train  from carriages inner join (select t1.id_train, t1.travel_time, t1.stay_time from (select * from trains_stations where id_station=1) as t1 inner join (select * from trains_stations where id_station=7) as t2 on (t1.id_train=t2.id_train and t1.travel_time<t2.travel_time)) as t3 on (carriages.id_train=t3.id_train and departure_time+(t3.travel_time+t3.stay_time)*interval '1 minute'>='2018-12-14 00:00:00' and departure_time+(t3.travel_time+t3.stay_time)*interval '1 minute'<='2018-12-14 23:59:59') order by carriages.id_train;
+ id_train 
+----------
+      618
+(1 row)
 
 // свободные места
 select * from seats inner join (select * from carriages where id_train=618 and departure_time='2018-12-14 20:40:00') as t1 on seats.id_carriage=t1.id_carriage where stage_1='f' and stage_2='f';
