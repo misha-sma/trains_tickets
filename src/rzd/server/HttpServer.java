@@ -12,7 +12,11 @@ import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URLDecoder;
+import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
+import rzd.persistence.dao.TrainDao;
+import rzd.persistence.entity.Train;
 import rzd.util.Util;
 
 public class HttpServer {
@@ -61,6 +65,34 @@ public class HttpServer {
               if (url.equals("favicon.ico")) {
                   writeFaviconResponse();
               } else if (url.startsWith("?from=")) {
+                try {
+                  url = URLDecoder.decode(url, "UTF8");
+              } catch (UnsupportedEncodingException e) {
+                  //logger.error(e);
+                e.printStackTrace();
+              }
+          System.out.println("url=" + url);
+          Map<String, String> params = Util.parseParameters(url);
+          String departureStation = params.get("from");
+          String destinationStation = params.get("to");
+          int idDepartureStation = TrainDao.getIdStation(departureStation);
+          int idDestinationStation = TrainDao.getIdStation(destinationStation);
+          String date = params.get("date");
+          if (date == null || date.isEmpty()) {
+            List<Integer> trains = TrainDao.getTrainsByStations(idDepartureStation, idDestinationStation);
+            for (int idTrain : trains) {
+              String trainDepartureStation = TrainDao.getDepartureStation(idTrain);
+              String trainDestinationStation = TrainDao.getDestinationStation(idTrain);
+              Train train = TrainDao.getTrainById(idTrain);
+            }
+          } else {
+            List<Integer> trains = TrainDao.getTrainsByStationsAndDate(idDepartureStation, idDestinationStation, date);
+
+          }
+               
+          
+          
+          
                 int andIndex = url.indexOf('&');
                 String query = url;//andIndex > 0 ? url.substring(7, andIndex) : url.substring(7);
                 try {

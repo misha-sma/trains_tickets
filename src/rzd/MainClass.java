@@ -20,7 +20,8 @@ public class MainClass {
 		}
 		List<Integer> idTrains = TrainDao.getTrainsByStations(1, 7);
 		System.out.println("idTrains=" + idTrains);
-		List<Integer> idTrainsDate = TrainDao.getTrainsByStationsAndDate(1, 7, new Date(118, 11, 14));
+//		List<Integer> idTrainsDate = TrainDao.getTrainsByStationsAndDate(1, 7, new Date(118, 11, 14));
+        List<Integer> idTrainsDate = TrainDao.getTrainsByStationsAndDate(1, 7, "2018-12-14");
 		System.out.println("idTrainsDate=" + idTrainsDate);
 		System.out.println("ENDDDD!!!!!!");
 	}

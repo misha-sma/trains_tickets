@@ -109,6 +109,10 @@ select count(1) from trains_stations where id_train=618 and travel_time<=(select
 // последний номер участка
 select count(1) from trains_stations where id_train=618 and travel_time<(select travel_time from trains_stations where id_train=618 and id_station=6);
 
+SELECT id_station FROM stations WHERE name ILIKE 'каДУй';
 
+// станция отправления 
+select * from stations where id_station=(select id_station from trains_stations where id_train=618 and travel_time=0);
 
-
+// станция назначения
+select * from stations where id_station=(select id_station from trains_stations where id_train=618 order by travel_time desc limit 1);
