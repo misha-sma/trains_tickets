@@ -14,6 +14,74 @@ import rzd.persistence.entity.Train;
 
 public class TrainDao {
 
+  public static int getTravelStayTime(int idTrain, int idStation) {
+    int travelStayTime = -1;
+    Connection con = null;
+    PreparedStatement ps = null;
+    try {
+      con = DBConnection.getDbConnection();
+      con.setAutoCommit(false);
+      String sql = "SELECT travel_time+stay_time FROM trains_stations WHERE id_train=? AND id_station=?";
+      ps = con.prepareStatement(sql);
+      ps.setInt(1, idTrain);
+      ps.setInt(2, idStation);
+      ResultSet rs = ps.executeQuery();
+      if (rs.next()) {
+        travelStayTime = rs.getInt(1);
+      }
+      rs.close();
+      con.commit();
+    } catch (ClassNotFoundException e) {
+      e.printStackTrace();
+    } catch (SQLException e) {
+      e.printStackTrace();
+    } finally {
+      try {
+        if (ps != null)
+          ps.close();
+        if (con != null)
+          con.close();
+      } catch (SQLException e) {
+        e.printStackTrace();
+      }
+    }
+    return travelStayTime;
+  }
+  
+  public static int getTravelTime(int idTrain, int idStation) {
+    int travelTime = -1;
+    Connection con = null;
+    PreparedStatement ps = null;
+    try {
+      con = DBConnection.getDbConnection();
+      con.setAutoCommit(false);
+      String sql = "SELECT travel_time FROM trains_stations WHERE id_train=? AND id_station=?";
+      ps = con.prepareStatement(sql);
+      ps.setInt(1, idTrain);
+      ps.setInt(2, idStation);
+      ResultSet rs = ps.executeQuery();
+      if (rs.next()) {
+        travelTime = rs.getInt(1);
+      }
+      rs.close();
+      con.commit();
+    } catch (ClassNotFoundException e) {
+      e.printStackTrace();
+    } catch (SQLException e) {
+      e.printStackTrace();
+    } finally {
+      try {
+        if (ps != null)
+          ps.close();
+        if (con != null)
+          con.close();
+      } catch (SQLException e) {
+        e.printStackTrace();
+      }
+    }
+    return travelTime;
+  }
+
   public static Train getTrainById(int idTrain) {
     Train train = new Train();
     train.setIdTrain(idTrain);

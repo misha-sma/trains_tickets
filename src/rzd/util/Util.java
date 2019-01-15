@@ -34,7 +34,7 @@ public class Util {
 
   public static Map<String, String> parseParameters(String url) {
     Map<String, String> result = new HashMap<String, String>();
-    String[] parts = url.split("&|?");
+    String[] parts = url.split("&|\\?");
     for (String part : parts) {
       int index = part.indexOf('=');
       if (index <= 0) {

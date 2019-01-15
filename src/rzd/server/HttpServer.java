@@ -12,6 +12,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URLDecoder;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -78,58 +79,51 @@ public class HttpServer {
           int idDepartureStation = TrainDao.getIdStation(departureStation);
           int idDestinationStation = TrainDao.getIdStation(destinationStation);
           String date = params.get("date");
+          StringBuilder builder = new StringBuilder();
+          builder.append(HOME_PAGE_BEGIN);
+          builder.append("<table border=\"1\">\n");
+          builder.append(
+              "<tr>\n<th>Поезд</th>\n<th>Время отправления</th>\n<th>Время в пути</th>\n<th>Время прибытия</th>\n<th></th>\n</tr>\n");
           if (date == null || date.isEmpty()) {
             List<Integer> trains = TrainDao.getTrainsByStations(idDepartureStation, idDestinationStation);
             for (int idTrain : trains) {
               String trainDepartureStation = TrainDao.getDepartureStation(idTrain);
               String trainDestinationStation = TrainDao.getDestinationStation(idTrain);
               Train train = TrainDao.getTrainById(idTrain);
+              int departureTravelTime = TrainDao.getTravelStayTime(idTrain, idDepartureStation);
+              int destinationTravelTime = TrainDao.getTravelTime(idTrain, idDestinationStation);
+
+              Calendar calendarDep = Calendar.getInstance();
+              calendarDep.setTime(train.getDepartureTime());
+              calendarDep.add(Calendar.MINUTE, departureTravelTime);
+              String depTime = "" + calendarDep.get(Calendar.HOUR) + ":" + calendarDep.get(Calendar.MINUTE);
+
+              Calendar calendarDest = Calendar.getInstance();
+              calendarDest.setTime(train.getDepartureTime());
+              calendarDest.add(Calendar.MINUTE, destinationTravelTime);
+              String destTime = "" + calendarDest.get(Calendar.HOUR) + ":" + calendarDest.get(Calendar.MINUTE);
+
+              builder.append("<tr><td>")
+                  .append(train.getIdTrain() + " " + trainDepartureStation + " - " + trainDestinationStation);
+              if (train.getName() != null && !train.getName().isEmpty()) {
+                builder.append("<br>" + train.getName());
+              }
+              builder.append("</td>\n<td>" + depTime + "</td>\n<td>" + (destinationTravelTime - departureTravelTime)
+                  + "</td>\n<td>" + destTime + "</td>\n");
+              builder.append(
+                  "<td>\n<form method='get' name='selectDate'>\n<input type=\"submit\" name=\"selectDateButton\" value=\"Выбрать дату\">\n");
+              builder.append("</form>\n" + train.getDepartureDays() + "</td>\n</tr>\n");
             }
+            builder.append("</table>\n");
           } else {
             List<Integer> trains = TrainDao.getTrainsByStationsAndDate(idDepartureStation, idDestinationStation, date);
 
           }
-               
-          
-          
-          
-                int andIndex = url.indexOf('&');
-                String query = url;//andIndex > 0 ? url.substring(7, andIndex) : url.substring(7);
-                try {
-                    query = URLDecoder.decode(query, "UTF8");
-                } catch (UnsupportedEncodingException e) {
-                    //logger.error(e);
-                  e.printStackTrace();
-                }
-                System.out.println("uuuurl="+query);
-//                int pageIndex = url.indexOf("&page=");
-//                int page = 1;
-//                if (pageIndex > 0) {
-//                    andIndex = url.indexOf('&', pageIndex + 6);
-//                    page = andIndex > 0 ? Integer.parseInt(url.substring(pageIndex + 6, andIndex)) : Integer
-//                            .parseInt(url.substring(pageIndex + 6));
-//                }
-//                logger.info("query=" + query + "  page=" + page);
-                // RUSSIAN URL ENCODING
-//                SearchResults results = SearchManager.getInstance().search(query, page, HITS_COUNT);
-//                StringBuilder builder = new StringBuilder(HOME_PAGE_BEGIN);
-//                for (Pair<String, String> pair : results.getUrls()) {
-//                    builder.append("<a href=\"").append(pair.getLeft()).append("\">").append(pair.getLeft())
-//                            .append("</a><br>\n").append(pair.getRight()).append("<br><br>\n");
-//                }
-//                if (results.getTotalTabsCount() > 1) {
-//                    String baseUrl = "/?query=" + query + "&page=";
-//                    for (int i = 1; i <= results.getTotalTabsCount(); ++i) {
-//                        builder.append("<a href=\"").append(baseUrl).append(i).append("\">").append(i)
-//                                .append("</a>   ");
-//                    }
-//                    builder.append("<br><br>\n");
-//                }
-//                builder.append(HOME_PAGE_END);
-//                writeHomePageResponse(builder.toString());
-              } else {
-                  writeHomePageResponse(HOME_PAGE);
-              }
+          builder.append(HOME_PAGE_END);
+          writeHomePageResponse(builder.toString());
+        } else {
+          writeHomePageResponse(HOME_PAGE);
+        }
           } catch (Throwable t) {
 //              logger.error(t);
             t.printStackTrace();

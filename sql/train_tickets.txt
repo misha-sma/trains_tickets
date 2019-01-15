@@ -116,3 +116,7 @@ select * from stations where id_station=(select id_station from trains_stations 
 
 // станция назначения
 select * from stations where id_station=(select id_station from trains_stations where id_train=618 order by travel_time desc limit 1);
+
+select travel_time+stay_time from trains_stations where id_train=618 and id_station=3;
+select travel_time from trains_stations where id_train=618 and id_station=3;
+
