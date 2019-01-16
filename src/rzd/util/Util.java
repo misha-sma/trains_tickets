@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,5 +49,32 @@ public class Util {
       }
     }
     return result;
+  }
+
+  public static String addMinutesToDate(Date date, int minutes) {
+    Calendar calendarDep = Calendar.getInstance();
+    calendarDep.setTime(date);
+    calendarDep.add(Calendar.MINUTE, minutes);
+    String depTime = addZeros2(calendarDep.get(Calendar.HOUR_OF_DAY)) + ":" + addZeros2(calendarDep.get(Calendar.MINUTE));
+    return depTime;
+  }
+
+  public static String addZeros2(int number) {
+    return number < 10 ? "0" + number : String.valueOf(number);
+  }
+
+  public static String formatMinutes(int minutes) {
+    int days = minutes / (24 * 60);
+    int hours = (minutes % (24 * 60)) / 60;
+    int minutesTrue = minutes % 60;
+    StringBuilder builder = new StringBuilder();
+    if (days > 0) {
+      builder.append(days).append(" д ");
+    }
+    if (days > 0 || hours > 0) {
+      builder.append(hours).append(" ч ");
+    }
+    builder.append(minutesTrue).append(" мин");
+    return builder.toString();
   }
 }

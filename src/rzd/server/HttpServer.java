@@ -12,7 +12,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URLDecoder;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -80,45 +79,47 @@ public class HttpServer {
           int idDestinationStation = TrainDao.getIdStation(destinationStation);
           String date = params.get("date");
           StringBuilder builder = new StringBuilder();
-          builder.append(HOME_PAGE_BEGIN);
+          String header = HOME_PAGE_BEGIN.replace("placeholder=\"Откуда\"", "value=\"" + departureStation + "\"");
+          header = header.replace("placeholder=\"Куда\"", "value=\"" + destinationStation + "\"");
+          header = header.replace("placeholder=\"Когда\"", "value=\"" + date + "\"");
+          builder.append(header);
           builder.append("<table border=\"1\">\n");
           builder.append(
               "<tr>\n<th>Поезд</th>\n<th>Время отправления</th>\n<th>Время в пути</th>\n<th>Время прибытия</th>\n<th></th>\n</tr>\n");
-          if (date == null || date.isEmpty()) {
-            List<Integer> trains = TrainDao.getTrainsByStations(idDepartureStation, idDestinationStation);
-            for (int idTrain : trains) {
-              String trainDepartureStation = TrainDao.getDepartureStation(idTrain);
-              String trainDestinationStation = TrainDao.getDestinationStation(idTrain);
-              Train train = TrainDao.getTrainById(idTrain);
-              int departureTravelTime = TrainDao.getTravelStayTime(idTrain, idDepartureStation);
-              int destinationTravelTime = TrainDao.getTravelTime(idTrain, idDestinationStation);
+          List<Integer> trains = null;
+          boolean isAllDays=date == null || date.isEmpty();
+          if (isAllDays) {
+            trains = TrainDao.getTrainsByStations(idDepartureStation, idDestinationStation);
+          } else {
+            trains = TrainDao.getTrainsByStationsAndDate(idDepartureStation, idDestinationStation, date);
+          }
 
-              Calendar calendarDep = Calendar.getInstance();
-              calendarDep.setTime(train.getDepartureTime());
-              calendarDep.add(Calendar.MINUTE, departureTravelTime);
-              String depTime = "" + calendarDep.get(Calendar.HOUR) + ":" + calendarDep.get(Calendar.MINUTE);
-
-              Calendar calendarDest = Calendar.getInstance();
-              calendarDest.setTime(train.getDepartureTime());
-              calendarDest.add(Calendar.MINUTE, destinationTravelTime);
-              String destTime = "" + calendarDest.get(Calendar.HOUR) + ":" + calendarDest.get(Calendar.MINUTE);
-
-              builder.append("<tr><td>")
-                  .append(train.getIdTrain() + " " + trainDepartureStation + " - " + trainDestinationStation);
-              if (train.getName() != null && !train.getName().isEmpty()) {
-                builder.append("<br>" + train.getName());
-              }
-              builder.append("</td>\n<td>" + depTime + "</td>\n<td>" + (destinationTravelTime - departureTravelTime)
-                  + "</td>\n<td>" + destTime + "</td>\n");
+          for (int idTrain : trains) {
+            String trainDepartureStation = TrainDao.getDepartureStation(idTrain);
+            String trainDestinationStation = TrainDao.getDestinationStation(idTrain);
+            Train train = TrainDao.getTrainById(idTrain);
+            int departureTravelTime = TrainDao.getTravelStayTime(idTrain, idDepartureStation);
+            int destinationTravelTime = TrainDao.getTravelTime(idTrain, idDestinationStation);
+            String depTime = Util.addMinutesToDate(train.getDepartureTime(), departureTravelTime);
+            String destTime = Util.addMinutesToDate(train.getDepartureTime(), destinationTravelTime);
+            builder.append("<tr><td>")
+                .append(train.getIdTrain() + " " + trainDepartureStation + " - " + trainDestinationStation);
+            if (train.getName() != null && !train.getName().isEmpty()) {
+              builder.append("<br>" + train.getName());
+            }
+            builder.append("</td>\n<td>" + depTime + "</td>\n<td>"
+                + Util.formatMinutes(destinationTravelTime - departureTravelTime) + "</td>\n<td>" + destTime
+                + "</td>\n");
+            if (isAllDays) {
               builder.append(
                   "<td>\n<form method='get' name='selectDate'>\n<input type=\"submit\" name=\"selectDateButton\" value=\"Выбрать дату\">\n");
-              builder.append("</form>\n" + train.getDepartureDays() + "</td>\n</tr>\n");
+            } else {
+              builder.append(
+                  "<td>\n<form method='get' name='selectSeat'>\n<input type=\"submit\" name=\"selectSeatButton\" value=\"Выбрать место\">\n");
             }
-            builder.append("</table>\n");
-          } else {
-            List<Integer> trains = TrainDao.getTrainsByStationsAndDate(idDepartureStation, idDestinationStation, date);
-
+            builder.append("</form>\n" + train.getDepartureDays() + "</td>\n</tr>\n");
           }
+          builder.append("</table>\n");
           builder.append(HOME_PAGE_END);
           writeHomePageResponse(builder.toString());
         } else {
