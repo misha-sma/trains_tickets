@@ -6,15 +6,19 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import rzd.MainClass;
 import rzd.persistence.DBConnection;
 import rzd.persistence.entity.Carriage;
+import rzd.persistence.entity.SeatsSearchResult;
 
 public class SeatDao {
-
+public static final int SEATS_HASH_BASE=1000;
+	
 	public static void addOneCarriageSeats(Carriage carriage) {
 		for (int seatNumber = 1; seatNumber <= MainClass.SEATS_COUNT_MAP
 				.get(carriage.getIdCarriageType()); ++seatNumber) {
@@ -99,20 +103,44 @@ public class SeatDao {
 		return builder.toString();
 	}
 
-	public static void getFreeSeats(int idTrain, Date departureDate, int idDepartureStation, int idDestinationStation) {
+	public static SeatsSearchResult getFreeSeats(int idTrain, String departureDate, int idDepartureStation,
+			int idDestinationStation, int delay) {
+		int maxCarriageNumber = 0;
+		Map<Integer, Integer> carriageTypesMap = new HashMap<Integer, Integer>();
+		Map<Integer, Long> seatsMap = new HashMap<Integer, Long>();
+
 		String condition = getCondition(idTrain, idDepartureStation, idDestinationStation);
 		Connection con = null;
 		PreparedStatement ps = null;
 		try {
 			con = DBConnection.getDbConnection();
 			con.setAutoCommit(false);
-			String sql = "SELECT * FROM seats INNER JOIN (SELECT * FROM carriages WHERE id_train=? AND departure_time=?) AS t1 "
-					+ "ON seats.id_carriage=t1.id_carriage WHERE " + condition;
+			String sql = "SELECT id_seat, seat_number, carriage_number, id_carriage_type FROM seats INNER JOIN carriages "
+					+ "ON seats.id_carriage=carriages.id_carriage WHERE id_train=? AND departure_time+"
+					+ "?*interval '1 minute'>='" + departureDate
+					+ " 00:00:00' AND departure_time+?*interval '1 minute'<='" + departureDate + " 23:59:59' AND "
+					+ condition;
+
+			// String sql = "SELECT * FROM seats INNER JOIN (SELECT * FROM carriages WHERE
+			// id_train=? AND departure_time+"+
+			// "?*interval '1 minute'>='"+departureDate+" 00:00:00' AND
+			// departure_time+?*interval '1 minute'<='"+departureDate+" 23:59:59') AS t1 "
+			// + "ON seats.id_carriage=t1.id_carriage WHERE " + condition;
 			ps = con.prepareStatement(sql);
 			ps.setInt(1, idTrain);
-			ps.setInt(2, idTrain);
+			ps.setInt(2, delay);
+			ps.setInt(3, delay);
 			ResultSet rs = ps.executeQuery();
-			if (rs.next()) {
+			while (rs.next()) {
+				long idSeat = rs.getLong(1);
+				int seatNumber = rs.getInt(2);
+				int carriageNumber = rs.getInt(3);
+				int carriageType = rs.getInt(4);
+				if (carriageNumber > maxCarriageNumber) {
+					maxCarriageNumber = carriageNumber;
+				}
+				carriageTypesMap.put(carriageNumber, carriageType);
+				seatsMap.put(carriageNumber * SEATS_HASH_BASE + seatNumber, idSeat);
 			}
 			rs.close();
 			con.commit();
@@ -130,5 +158,6 @@ public class SeatDao {
 				e.printStackTrace();
 			}
 		}
+		return new SeatsSearchResult(maxCarriageNumber, carriageTypesMap, seatsMap);
 	}
 }

@@ -58,13 +58,47 @@ public class CarriageDao {
 		try {
 			con = DBConnection.getDbConnection();
 			con.setAutoCommit(false);
-			String sql = "SELECT id_carriage_type, seats_count from carriage_types ORDER BY id_carriage_type";
+			String sql = "SELECT id_carriage_type, seats_count FROM carriage_types";
 			ps = con.prepareStatement(sql);
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
 				int idCarriageType = rs.getInt(1);
 				int seatsCount = rs.getInt(2);
 				result.put(idCarriageType, seatsCount);
+			}
+			rs.close();
+			con.commit();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (ps != null)
+					ps.close();
+				if (con != null)
+					con.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return result;
+	}
+
+	public static Map<Integer, String> getCarriageNamesMap() {
+		Map<Integer, String> result = new HashMap<Integer, String>();
+		Connection con = null;
+		PreparedStatement ps = null;
+		try {
+			con = DBConnection.getDbConnection();
+			con.setAutoCommit(false);
+			String sql = "SELECT id_carriage_type, name FROM carriage_types";
+			ps = con.prepareStatement(sql);
+			ResultSet rs = ps.executeQuery();
+			while (rs.next()) {
+				int idCarriageType = rs.getInt(1);
+				String name = rs.getString(2);
+				result.put(idCarriageType, name);
 			}
 			rs.close();
 			con.commit();

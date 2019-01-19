@@ -12,11 +12,17 @@ import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URLDecoder;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+
+import rzd.persistence.dao.CarriageDao;
+import rzd.persistence.dao.SeatDao;
 import rzd.persistence.dao.TrainDao;
+import rzd.persistence.entity.SeatsSearchResult;
 import rzd.persistence.entity.Train;
+import rzd.renderer.SeatsRenderer;
 import rzd.util.Util;
 
 public class HttpServer {
@@ -24,6 +30,8 @@ public class HttpServer {
 	public static final String HOME_PAGE_BEGIN;
 	public static final String HOME_PAGE_END;
 	public static byte[] faviconBytes;
+	public static final Map<Integer, Integer> SEATS_COUNT_MAP = CarriageDao.getSeatsCountMap();
+	public static final Map<Integer, String> CARRIAGE_NAMES_MAP = CarriageDao.getCarriageNamesMap();
 
 	static {
 		HOME_PAGE = Util.loadText("web/index.html");
@@ -62,7 +70,40 @@ public class HttpServer {
 				String url = getUrl(headers);
 				if (url.equals("favicon.ico")) {
 					writeFaviconResponse();
+				} else if (url.startsWith("?date=")) {
+					// выбор места
+					try {
+						url = URLDecoder.decode(url, "UTF8");
+					} catch (UnsupportedEncodingException e) {
+						// logger.error(e);
+						e.printStackTrace();
+					}
+					System.out.println("url=" + url);
+					Map<String, String> params = Util.parseParameters(url);
+					// String departureStation = params.get("from");
+					// String destinationStation = params.get("to");
+					int idDepartureStation = Integer.parseInt(params.get("from"));
+					int idDestinationStation = Integer.parseInt(params.get("to"));
+					int idTrain = Integer.parseInt(params.get("idTrain"));
+					String date = params.get("date");
+					int delay = TrainDao.getTravelStayTime(idTrain, idDepartureStation);
+					SeatsSearchResult ssr = SeatDao.getFreeSeats(idTrain, date, idDepartureStation,
+							idDestinationStation, delay);
+					StringBuilder builder = new StringBuilder();
+					builder.append(HOME_PAGE_BEGIN);
+					for (int carriageNumber = 1; carriageNumber <= ssr.getMaxCarriageNumber(); ++carriageNumber) {
+						Integer carriageType = ssr.getCarriageTypesMap().get(carriageNumber);
+						if (carriageType == null) {
+							continue;
+						}
+						String table = SeatsRenderer.renderCarriage(carriageNumber, carriageType, ssr.getSeatsMap(),
+								idDepartureStation, idDestinationStation);
+						builder.append(table);
+					}
+					builder.append(HOME_PAGE_END);
+					writeHomePageResponse(builder.toString());
 				} else if (url.startsWith("?from=")) {
+					// выбор станций
 					try {
 						url = URLDecoder.decode(url, "UTF8");
 					} catch (UnsupportedEncodingException e) {
@@ -80,7 +121,7 @@ public class HttpServer {
 					String header = HOME_PAGE_BEGIN.replace("placeholder=\"Откуда\"",
 							"value=\"" + departureStation + "\"");
 					header = header.replace("placeholder=\"Куда\"", "value=\"" + destinationStation + "\"");
-					header = header.replace("placeholder=\"Когда\"", "value=\"" + date + "\"");
+					header = header.replace("value=\"\"", "value=\"" + date + "\"");
 					builder.append(header);
 					builder.append("<table border=\"1\">\n");
 					builder.append(
@@ -115,16 +156,19 @@ public class HttpServer {
 								+ Util.formatMinutes(destinationTravelTime - departureTravelTime) + "</td>\n<td>"
 								+ destTime + "</td>\n");
 						if (isAllDays) {
-							builder.append(
-									"<td>\n<form method='get' name='selectDate'>\n<input type=\"date\" name=\"date\">\n"
-											+ "<input type=\"hidden\" name=\"idTrain\" value=\"" + idTrain + "\" />"
-											+ "<input type=\"hidden\" name=\"from\" value=\"" + idDepartureStation
-											+ "\" />" + "<input type=\"hidden\" name=\"to\" value=\""
-											+ idDestinationStation + "\" />"
-											+ "<input type=\"submit\" name=\"submitDateButton\" value=\"Выбрать\">");
+							builder.append("<td>\n"
+									+ "<form method='get' name='selectDate'>\n<input type=\"date\" name=\"date\">\n"
+									+ "<input type=\"hidden\" name=\"idTrain\" value=\"" + idTrain + "\" />"
+									+ "<input type=\"hidden\" name=\"from\" value=\"" + idDepartureStation + "\" />"
+									+ "<input type=\"hidden\" name=\"to\" value=\"" + idDestinationStation + "\" />"
+									+ "<input type=\"submit\" name=\"submitDateButton\" value=\"Выбрать\">");
 						} else {
-							builder.append(
-									"<td>\n<form method='get' name='selectSeat'>\n<input type=\"submit\" name=\"selectSeatButton\" value=\"Выбрать место\">\n");
+							builder.append("<td>\n<form method='get' name='selectSeat'>\n"
+									+ "<input type=\"hidden\" name=\"date\" value=\"" + date + "\" />"
+									+ "<input type=\"hidden\" name=\"idTrain\" value=\"" + idTrain + "\" />"
+									+ "<input type=\"hidden\" name=\"from\" value=\"" + idDepartureStation + "\" />"
+									+ "<input type=\"hidden\" name=\"to\" value=\"" + idDestinationStation + "\" />"
+									+ "<input type=\"submit\" name=\"selectSeatButton\" value=\"Выбрать место\">\n");
 						}
 						builder.append("</form>\n" + train.getDepartureDays() + "</td>\n</tr>\n");
 					}
@@ -132,8 +176,13 @@ public class HttpServer {
 					builder.append(HOME_PAGE_END);
 					writeHomePageResponse(builder.toString());
 				} else {
+//					Calendar cal = Calendar.getInstance();
+//					String date = String.valueOf(cal.get(Calendar.YEAR)) + "-"
+//							+ Util.addZeros2(cal.get(Calendar.MONTH) + 1) + "-" + cal.get(Calendar.DAY_OF_MONTH);
+//					String homePage = HOME_PAGE.replace("value=\"\"", "value=\"" + date + "\"");
+//					writeHomePageResponse(homePage);
 					writeHomePageResponse(HOME_PAGE);
-				}
+						}
 			} catch (Throwable t) {
 				// logger.error(t);
 				t.printStackTrace();

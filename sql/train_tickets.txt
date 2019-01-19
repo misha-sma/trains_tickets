@@ -103,6 +103,15 @@ select distinct carriages.id_train  from carriages inner join (select t1.id_trai
 // свободные места
 select * from seats inner join (select * from carriages where id_train=618 and departure_time='2018-12-14 20:40:00') as t1 on seats.id_carriage=t1.id_carriage where stage_1='f' and stage_2='f';
 
+SELECT id_seat, seat_number, t1.carriage_number, t1.id_carriage_type FROM seats INNER JOIN (SELECT * FROM carriages WHERE id_train=618 AND departure_time+
+203*interval '1 minute'>='2018-12-15 00:00:00' AND departure_time+203*interval '1 minute'<='2018-12-15 23:59:59') AS t1 
+ON seats.id_carriage=t1.id_carriage WHERE stage_1='f' and stage_2='f' limit 10;
+
+SELECT id_seat, seat_number, carriage_number, id_carriage_type FROM seats INNER JOIN carriages  
+ON seats.id_carriage=carriages.id_carriage WHERE id_train=618 AND departure_time+
+203*interval '1 minute'>='2018-12-15 00:00:00' AND departure_time+203*interval '1 minute'<='2018-12-15 23:59:59' AND stage_1='f' and stage_2='f' limit 10;
+
+
 // первый номер участка
 select count(1) from trains_stations where id_train=618 and travel_time<=(select travel_time from trains_stations where id_train=618 and id_station=3);
 
