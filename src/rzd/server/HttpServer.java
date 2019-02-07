@@ -12,7 +12,9 @@ import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URLDecoder;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -20,8 +22,10 @@ import java.util.StringTokenizer;
 import rzd.persistence.dao.CarriageDao;
 import rzd.persistence.dao.SeatDao;
 import rzd.persistence.dao.TrainDao;
+import rzd.persistence.dao.UserDao;
 import rzd.persistence.entity.SeatsSearchResult;
 import rzd.persistence.entity.Train;
+import rzd.persistence.entity.User;
 import rzd.renderer.SeatsRenderer;
 import rzd.util.Util;
 
@@ -32,12 +36,14 @@ public class HttpServer {
 	public static byte[] faviconBytes;
 	public static final Map<Integer, Integer> SEATS_COUNT_MAP = CarriageDao.getSeatsCountMap();
 	public static final Map<Integer, String> CARRIAGE_NAMES_MAP = CarriageDao.getCarriageNamesMap();
-
+	public static final String PASSENGER_PAGE;
+	
 	static {
 		HOME_PAGE = Util.loadText("web/index.html");
 		int endBodyIndex = HOME_PAGE.indexOf("</body>");
 		HOME_PAGE_BEGIN = HOME_PAGE.substring(0, endBodyIndex);
 		HOME_PAGE_END = HOME_PAGE.substring(endBodyIndex);
+        PASSENGER_PAGE = Util.loadText("web/passenger.html");
 		File file = new File("web/favicon.ico");
 		try {
 			FileInputStream input = new FileInputStream(file);
@@ -70,6 +76,52 @@ public class HttpServer {
 				String url = getUrl(headers);
 				if (url.equals("favicon.ico")) {
 					writeFaviconResponse();
+				} else if (url.startsWith("?surname=")) {
+                  // сохранение данных пассажира
+                  try {
+                      url = URLDecoder.decode(url, "UTF8");
+                  } catch (UnsupportedEncodingException e) {
+                      // logger.error(e);
+                      e.printStackTrace();
+                  }
+                  System.out.println("url=" + url);
+                  Map<String, String> params = Util.parseParameters(url);
+				String passportStr=params.get("passport");
+				long passport=Long.parseLong(passportStr);
+				String surname=params.get("surname");
+				String name=params.get("name");
+				String patronymic=params.get("patronymic");
+				String birthdayStr=params.get("birthday");
+				String pattern = "yyyy-MM-dd";
+				SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
+				Date birthday = simpleDateFormat.parse(birthdayStr);
+				String phoneStr=params.get("phone").replace("+", "");
+                long phone=Long.parseLong(phoneStr);
+                String email=params.get("email");
+				User user=UserDao.getUserById(passport);
+				if(user==null) {
+				  UserDao.addUser(passport, surname, name, patronymic, birthday, phone, email);
+				}else {
+				  if(matching()) {
+				    //write ticket 2 db and set stages=true
+				  
+				  }else {
+				    //update user
+				  
+				  }
+				}
+				
+				} else if (url.startsWith("?idSeat=")) {
+                  // введение данных пассажира
+                  try {
+                      url = URLDecoder.decode(url, "UTF8");
+                  } catch (UnsupportedEncodingException e) {
+                      // logger.error(e);
+                      e.printStackTrace();
+                  }
+                  System.out.println("url=" + url);
+                  Map<String, String> params = Util.parseParameters(url);
+                  writeHomePageResponse(PASSENGER_PAGE);
 				} else if (url.startsWith("?date=")) {
 					// выбор места
 					try {
