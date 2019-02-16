@@ -15,6 +15,7 @@ import rzd.MainClass;
 import rzd.persistence.DBConnection;
 import rzd.persistence.entity.Carriage;
 import rzd.persistence.entity.SeatsSearchResult;
+import rzd.persistence.entity.User;
 
 public class SeatDao {
 public static final int SEATS_HASH_BASE=1000;
@@ -160,4 +161,46 @@ public static final int SEATS_HASH_BASE=1000;
 		}
 		return new SeatsSearchResult(maxCarriageNumber, carriageTypesMap, seatsMap);
 	}
+
+	private static String getCondition4Update(int idTrain, int idDepartureStation, int idDestinationStation) {
+		int num1 = getPreviousStationsCount(idTrain, idDepartureStation);
+		int num2 = getPreviousStationsCount(idTrain, idDestinationStation);
+		StringBuilder builder = new StringBuilder();
+		for (int i = num1; i < num2; ++i) {
+			if (i > num1) {
+				builder.append(", ");
+			}
+			builder.append("stage_" + i + "='t' ");
+		}
+		return builder.toString();
+	}
+
+	public static void updateSeat(long idSeat, int idTrain, int idDepartureStation, int idDestinationStation) {
+		String condition = getCondition4Update(idTrain, idDepartureStation, idDestinationStation);
+		Connection con = null;
+		PreparedStatement ps = null;
+		try {
+			con = DBConnection.getDbConnection();
+			con.setAutoCommit(false);
+			String sql = "UPDATE seats SET " + condition + " WHERE id_seat=?";
+			ps = con.prepareStatement(sql);
+			ps.setLong(1, idSeat);
+			ps.execute();
+			con.commit();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (ps != null)
+					ps.close();
+				if (con != null)
+					con.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 }

@@ -21,6 +21,7 @@ import java.util.StringTokenizer;
 
 import rzd.persistence.dao.CarriageDao;
 import rzd.persistence.dao.SeatDao;
+import rzd.persistence.dao.TicketDao;
 import rzd.persistence.dao.TrainDao;
 import rzd.persistence.dao.UserDao;
 import rzd.persistence.entity.SeatsSearchResult;
@@ -84,33 +85,17 @@ public class HttpServer {
                       // logger.error(e);
                       e.printStackTrace();
                   }
-                  System.out.println("url=" + url);
-                  Map<String, String> params = Util.parseParameters(url);
-				String passportStr=params.get("passport");
-				long passport=Long.parseLong(passportStr);
-				String surname=params.get("surname");
-				String name=params.get("name");
-				String patronymic=params.get("patronymic");
-				String birthdayStr=params.get("birthday");
-				String pattern = "yyyy-MM-dd";
-				SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
-				Date birthday = simpleDateFormat.parse(birthdayStr);
-				String phoneStr=params.get("phone").replace("+", "");
-                long phone=Long.parseLong(phoneStr);
-                String email=params.get("email");
-				User user=UserDao.getUserById(passport);
-				if(user==null) {
-				  UserDao.addUser(passport, surname, name, patronymic, birthday, phone, email);
-				}else {
-				  if(matching()) {
-				    //write ticket 2 db and set stages=true
-				  
-				  }else {
-				    //update user
-				  
-				  }
-				}
-				
+					System.out.println("url=" + url);
+					Map<String, String> params = Util.parseParameters(url);
+					User userNew = new User(params);
+					User userOld = UserDao.getUserById(userNew.getIdUser());
+					if (userOld == null) {
+						UserDao.addUser(userNew);
+					} else if (!userNew.isMatching(userOld)) {
+						UserDao.updateUser(userNew);
+					}
+					TicketDao.createTicket(idSeat, idDepartureStation, idDestinationStation, userNew.getIdUser());
+					SeatDao.updateSeat(idSeat, idTrain, idDepartureStation, idDestinationStation);
 				} else if (url.startsWith("?idSeat=")) {
                   // введение данных пассажира
                   try {

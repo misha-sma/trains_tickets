@@ -72,11 +72,14 @@ CREATE TABLE IF NOT EXISTS seats (id_seat bigserial PRIMARY KEY, id_carriage big
 ALTER TABLE seats ADD CONSTRAINT fk_seats_carriages FOREIGN KEY (id_carriage) REFERENCES carriages(id_carriage);
 
 // билеты
-CREATE TABLE IF NOT EXISTS tickets (id_ticket bigserial PRIMARY KEY, id_seat bigint, departure_station int, destination_station int, id_user bigint);
+CREATE TABLE IF NOT EXISTS tickets (id_ticket bigserial PRIMARY KEY, id_seat bigint, departure_station int, destination_station int, id_user bigint, 
+buy_date timestamp without time zone DEFAULT NOW());
 ALTER TABLE tickets ADD CONSTRAINT fk_tickets_seats FOREIGN KEY (id_seat) REFERENCES seats(id_seat);
 ALTER TABLE tickets ADD CONSTRAINT fk_tickets_stations_departure FOREIGN KEY (departure_station) REFERENCES stations(id_station);
 ALTER TABLE tickets ADD CONSTRAINT fk_tickets_stations_destination FOREIGN KEY (destination_station) REFERENCES stations(id_station);
 ALTER TABLE tickets ADD CONSTRAINT fk_tickets_users FOREIGN KEY (id_user) REFERENCES users(id_user);
+
+--alter table tickets add column buy_date timestamp without time zone DEFAULT NOW();
 
 про запуск джоб по расписанию в постгресе pgpro_scheduler 
 pgagent в пгадмине
