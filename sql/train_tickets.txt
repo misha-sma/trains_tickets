@@ -29,11 +29,11 @@ pg_dump -f ../rzd.dump -p 5432 -h localhost -U postgres rzd
 CREATE TABLE IF NOT EXISTS carriage_types (id_carriage_type int, name varchar(256), seats_count int);
 ALTER TABLE carriage_types ADD PRIMARY KEY (id_carriage_type);
 
-INSERT INTO carriage_types(id_carriage_type, name, seats_number) VALUES (1, 'плацкарт', 54);
-INSERT INTO carriage_types(id_carriage_type, name, seats_number) VALUES (2, 'купе', 36);
-INSERT INTO carriage_types(id_carriage_type, name, seats_number) VALUES (3, 'СВ', 18);
-INSERT INTO carriage_types(id_carriage_type, name, seats_number) VALUES (4, 'сидячий', 66);
-INSERT INTO carriage_types(id_carriage_type, name, seats_number) VALUES (5, 'двухэтажный', 64);
+INSERT INTO carriage_types(id_carriage_type, name, seats_count) VALUES (1, 'плацкарт', 54);
+INSERT INTO carriage_types(id_carriage_type, name, seats_count) VALUES (2, 'купе', 36);
+INSERT INTO carriage_types(id_carriage_type, name, seats_count) VALUES (3, 'СВ', 18);
+INSERT INTO carriage_types(id_carriage_type, name, seats_count) VALUES (4, 'сидячий', 66);
+INSERT INTO carriage_types(id_carriage_type, name, seats_count) VALUES (5, 'двухэтажный', 64);
 
 // вагоны
 CREATE TABLE IF NOT EXISTS carriages (id_carriage bigserial PRIMARY KEY, id_train int, departure_time timestamp without time zone, carriage_number int, id_carriage_type int);
