@@ -21,6 +21,7 @@ import java.util.StringTokenizer;
 
 import rzd.persistence.dao.CarriageDao;
 import rzd.persistence.dao.SeatDao;
+import rzd.persistence.dao.StationDao;
 import rzd.persistence.dao.TicketDao;
 import rzd.persistence.dao.TrainDao;
 import rzd.persistence.dao.UserDao;
@@ -39,6 +40,7 @@ public class HttpServer {
 	public static final Map<Integer, String> CARRIAGE_NAMES_MAP = CarriageDao.getCarriageNamesMap();
 	public static final String PASSENGER_PAGE;
     public static final String SUCCESS_PAGE;
+	public static final int PORT = 8080;
 	
 	static {
 		HOME_PAGE = Util.loadText("web/index.html");
@@ -136,7 +138,13 @@ public class HttpServer {
 					SeatsSearchResult ssr = SeatDao.getFreeSeats(idTrain, date, idDepartureStation,
 							idDestinationStation, delay);
 					StringBuilder builder = new StringBuilder();
-					builder.append(HOME_PAGE_BEGIN);
+//					builder.append(HOME_PAGE_BEGIN);
+                    String departureStation = StationDao.getStationNameById(idDepartureStation);
+                    String destinationStation = StationDao.getStationNameById(idDestinationStation);
+                    String header = HOME_PAGE_BEGIN.replace("placeholder=\"Откуда\"", "value=\"" + departureStation + "\"");
+                    header = header.replace("placeholder=\"Куда\"", "value=\"" + destinationStation + "\"");
+                    header = header.replace("value=\"\"", "value=\"" + date + "\"");
+                    builder.append(header);
 					for (int carriageNumber = 1; carriageNumber <= ssr.getMaxCarriageNumber(); ++carriageNumber) {
 						Integer carriageType = ssr.getCarriageTypesMap().get(carriageNumber);
 						if (carriageType == null) {
@@ -277,7 +285,7 @@ public class HttpServer {
 	}
 
 	public static void main(String[] args) throws Throwable {
-		ServerSocket serverSocket = new ServerSocket(8080);
+		ServerSocket serverSocket = new ServerSocket(PORT);
 		// logger.info("Server started!!!");
 		System.out.println("Server started!!!");
 		while (true) {
