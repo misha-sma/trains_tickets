@@ -135,3 +135,5 @@ select * from stations where id_station=(select id_station from trains_stations 
 select travel_time+stay_time from trains_stations where id_train=618 and id_station=3;
 select travel_time from trains_stations where id_train=618 and id_station=3;
 
+// номер поезда по айдишнику места
+select id_train from carriages where id_carriage=(select id_carriage from seats where id_seat=10);

@@ -175,8 +175,9 @@ public static final int SEATS_HASH_BASE=1000;
 		return builder.toString();
 	}
 
-	public static void updateSeat(long idSeat, int idTrain, int idDepartureStation, int idDestinationStation) {
-		String condition = getCondition4Update(idTrain, idDepartureStation, idDestinationStation);
+	public static void updateSeat(long idSeat, int idDepartureStation, int idDestinationStation) {
+		int idTrain = getIdTrainByIdSeat(idSeat);
+	    String condition = getCondition4Update(idTrain, idDepartureStation, idDestinationStation);
 		Connection con = null;
 		PreparedStatement ps = null;
 		try {
@@ -203,4 +204,36 @@ public static final int SEATS_HASH_BASE=1000;
 		}
 	}
 
+	private static int getIdTrainByIdSeat(long idSeat) {
+      int idTrain = -1;
+      Connection con = null;
+      PreparedStatement ps = null;
+      try {
+          con = DBConnection.getDbConnection();
+          con.setAutoCommit(false);
+          String sql = "SELECT id_train FROM carriages WHERE id_carriage=(SELECT id_carriage FROM seats WHERE id_seat=?)";
+          ps = con.prepareStatement(sql);
+          ps.setLong(1, idSeat);
+          ResultSet rs = ps.executeQuery();
+          if (rs.next()) {
+              idTrain = rs.getInt(1);
+          }
+          rs.close();
+          con.commit();
+      } catch (ClassNotFoundException e) {
+          e.printStackTrace();
+      } catch (SQLException e) {
+          e.printStackTrace();
+      } finally {
+          try {
+              if (ps != null)
+                  ps.close();
+              if (con != null)
+                  con.close();
+          } catch (SQLException e) {
+              e.printStackTrace();
+          }
+      }
+      return idTrain;
+  }
 }

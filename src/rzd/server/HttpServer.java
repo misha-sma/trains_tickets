@@ -38,6 +38,7 @@ public class HttpServer {
 	public static final Map<Integer, Integer> SEATS_COUNT_MAP = CarriageDao.getSeatsCountMap();
 	public static final Map<Integer, String> CARRIAGE_NAMES_MAP = CarriageDao.getCarriageNamesMap();
 	public static final String PASSENGER_PAGE;
+    public static final String SUCCESS_PAGE;
 	
 	static {
 		HOME_PAGE = Util.loadText("web/index.html");
@@ -45,6 +46,7 @@ public class HttpServer {
 		HOME_PAGE_BEGIN = HOME_PAGE.substring(0, endBodyIndex);
 		HOME_PAGE_END = HOME_PAGE.substring(endBodyIndex);
         PASSENGER_PAGE = Util.loadText("web/passenger.html");
+        SUCCESS_PAGE = Util.loadText("web/success.html");
 		File file = new File("web/favicon.ico");
 		try {
 			FileInputStream input = new FileInputStream(file);
@@ -94,8 +96,12 @@ public class HttpServer {
 					} else if (!userNew.isMatching(userOld)) {
 						UserDao.updateUser(userNew);
 					}
-					TicketDao.createTicket(idSeat, idDepartureStation, idDestinationStation, userNew.getIdUser());
-					SeatDao.updateSeat(idSeat, idTrain, idDepartureStation, idDestinationStation);
+					long idSeat = Long.parseLong(params.get("idSeat"));
+					int idDepartureStation = Integer.parseInt(params.get("from"));
+                    int idDestinationStation = Integer.parseInt(params.get("to"));
+                    TicketDao.createTicket(idSeat, idDepartureStation, idDestinationStation, userNew.getIdUser());
+					SeatDao.updateSeat(idSeat, idDepartureStation, idDestinationStation);
+					writeHomePageResponse(SUCCESS_PAGE);
 				} else if (url.startsWith("?idSeat=")) {
                   // введение данных пассажира
                   try {
@@ -106,7 +112,10 @@ public class HttpServer {
                   }
                   System.out.println("url=" + url);
                   Map<String, String> params = Util.parseParameters(url);
-                  writeHomePageResponse(PASSENGER_PAGE);
+                  String passengerPage = PASSENGER_PAGE.replace("name=\"from\" value=\"\">", "name=\"from\" value=\""+params.get("from")+"\">");
+                  passengerPage = passengerPage.replace("name=\"to\" value=\"\">", "name=\"to\" value=\""+params.get("to")+"\">");
+                  passengerPage = passengerPage.replace("name=\"idSeat\" value=\"\">", "name=\"idSeat\" value=\""+params.get("idSeat")+"\">");
+                  writeHomePageResponse(passengerPage);
 				} else if (url.startsWith("?date=")) {
 					// выбор места
 					try {
