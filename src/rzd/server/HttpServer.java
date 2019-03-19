@@ -12,9 +12,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URLDecoder;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -138,13 +135,23 @@ public class HttpServer {
 					SeatsSearchResult ssr = SeatDao.getFreeSeats(idTrain, date, idDepartureStation,
 							idDestinationStation, delay);
 					StringBuilder builder = new StringBuilder();
-//					builder.append(HOME_PAGE_BEGIN);
                     String departureStation = StationDao.getStationNameById(idDepartureStation);
                     String destinationStation = StationDao.getStationNameById(idDestinationStation);
                     String header = HOME_PAGE_BEGIN.replace("placeholder=\"Откуда\"", "value=\"" + departureStation + "\"");
                     header = header.replace("placeholder=\"Куда\"", "value=\"" + destinationStation + "\"");
                     header = header.replace("value=\"\"", "value=\"" + date + "\"");
                     builder.append(header);
+                    String departureStationTrain = TrainDao.getDepartureStation(idTrain);
+                    String destinationStationTrain = TrainDao.getDestinationStation(idTrain);
+                    Train train=TrainDao.getTrainById(idTrain);
+                    String trainNameQuotes=train.getName()==null?"":"&laquo;"+train.getName()+"&raquo;";
+                    builder.append("Поезд №"+idTrain+" "+departureStationTrain+ " - "+destinationStationTrain+" "+trainNameQuotes+"<br>");
+                    String depTime=Util.addMinutesToDate(train.getDepartureTime(), delay);
+                    builder.append("Отправление "+Util.convertDateToDots(date)+" в "+depTime+"<br>");
+                    int delayDest = TrainDao.getTravelTime(idTrain, idDestinationStation);
+                    String[] destDate=Util.calcDestDate(date, depTime, delayDest-delay);
+                    builder.append("Прибытие " + destDate[0] + " в " + destDate[1] + "<br>");
+                    builder.append("Время в пути "+Util.formatMinutes(delayDest-delay)+"<br>");
 					for (int carriageNumber = 1; carriageNumber <= ssr.getMaxCarriageNumber(); ++carriageNumber) {
 						Integer carriageType = ssr.getCarriageTypesMap().get(carriageNumber);
 						if (carriageType == null) {
@@ -230,13 +237,8 @@ public class HttpServer {
 					builder.append(HOME_PAGE_END);
 					writeHomePageResponse(builder.toString());
 				} else {
-//					Calendar cal = Calendar.getInstance();
-//					String date = String.valueOf(cal.get(Calendar.YEAR)) + "-"
-//							+ Util.addZeros2(cal.get(Calendar.MONTH) + 1) + "-" + cal.get(Calendar.DAY_OF_MONTH);
-//					String homePage = HOME_PAGE.replace("value=\"\"", "value=\"" + date + "\"");
-//					writeHomePageResponse(homePage);
 					writeHomePageResponse(HOME_PAGE);
-						}
+				}
 			} catch (Throwable t) {
 				// logger.error(t);
 				t.printStackTrace();
@@ -254,9 +256,8 @@ public class HttpServer {
 		}
 
 		private void writeHomePageResponse(String html) throws Throwable {
-			String response = "HTTP/1.1 200 OK\r\n" + "Server: misha-sma-Server/2012\r\n"
-					+ "Content-Type: text/html\r\n" + "Set-Cookie: SSSAAAA=GGGDDDDD\r\n" + "cookie: SSS=GGG;path=/\r\n"
-					+ "Connection: close\r\n\r\n";
+            String response = "HTTP/1.1 200 OK\r\n" + "Server: misha-sma-Server/2012\r\n" + "Content-Type: text/html\r\n"
+                + "Connection: close\r\n\r\n";
 			String result = response + html;
 			os.write(result.getBytes());
 			os.flush();

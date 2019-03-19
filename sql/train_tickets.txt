@@ -137,3 +137,9 @@ select travel_time from trains_stations where id_train=618 and id_station=3;
 
 // номер поезда по айдишнику места
 select id_train from carriages where id_carriage=(select id_carriage from seats where id_seat=10);
+
+// просетить куки
+String response = "HTTP/1.1 200 OK\r\n" + "Server: misha-sma-Server/2012\r\n"
+					+ "Content-Type: text/html\r\n" + "Set-Cookie: SSSAAAA=GGGDDDDD\r\n" + "cookie: SSS=GGG;path=/\r\n"
+					+ "Connection: close\r\n\r\n";
+					
