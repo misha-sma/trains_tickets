@@ -13,6 +13,18 @@ public class Util {
   private Util() {
   }
 
+  public static final Map<Integer, String> DAY_OF_WEEK_MAP = new HashMap<Integer, String>();
+
+  static {
+    DAY_OF_WEEK_MAP.put(1, "вс");
+    DAY_OF_WEEK_MAP.put(2, "пн");
+    DAY_OF_WEEK_MAP.put(3, "вт");
+    DAY_OF_WEEK_MAP.put(4, "ср");
+    DAY_OF_WEEK_MAP.put(5, "чт");
+    DAY_OF_WEEK_MAP.put(6, "пт");
+    DAY_OF_WEEK_MAP.put(7, "сб");
+  }
+  
   public static String loadText(File file) {
       try {
           FileInputStream input = new FileInputStream(file);
@@ -51,6 +63,14 @@ public class Util {
     return result;
   }
 
+  public static String addMinutesToDateDate(Date date, int minutes) {
+    Calendar calendarDep = Calendar.getInstance();
+    calendarDep.setTime(date);
+    calendarDep.add(Calendar.MINUTE, minutes);
+    return String.valueOf(calendarDep.get(Calendar.YEAR)) + "-" + addZeros2(calendarDep.get(Calendar.MONTH) + 1) + "-"
+        + addZeros2(calendarDep.get(Calendar.DAY_OF_MONTH));
+  }
+
   public static String[] addMinutesToDateFull(Date date, int minutes) {
     String[] result = new String[2];
     Calendar calendarDep = Calendar.getInstance();
@@ -71,7 +91,7 @@ public class Util {
   }
 
   public static String[] calcDestDate(String depDate, String depTime, int delay) {
-    String[] result = new String[2];
+    String[] result = new String[3];
     String[] parts = depDate.split("-");
     String[] partsH = depTime.split(":");
     Calendar calendarDep = Calendar.getInstance();
@@ -81,6 +101,7 @@ public class Util {
     result[0] = String.valueOf(calendarDep.get(Calendar.DAY_OF_MONTH)) + "."
         + addZeros2(calendarDep.get(Calendar.MONTH) + 1) + "." + calendarDep.get(Calendar.YEAR);
     result[1] = addZeros2(calendarDep.get(Calendar.HOUR_OF_DAY)) + ":" + addZeros2(calendarDep.get(Calendar.MINUTE));
+    result[2] = DAY_OF_WEEK_MAP.get(calendarDep.get(Calendar.DAY_OF_WEEK));
     return result;
   }
 
@@ -89,7 +110,15 @@ public class Util {
     String day = parts[2].startsWith("0") ? parts[2].substring(1) : parts[2];
     return day + "." + parts[1] + "." + parts[0];
   }
-  
+
+  public static String getDayOfWeek(String date) {
+    String[] parts = date.split("-");
+    Calendar calendarDep = Calendar.getInstance();
+    calendarDep.set(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]) - 1, Integer.parseInt(parts[2]));
+    int dayOfWeek = calendarDep.get(Calendar.DAY_OF_WEEK);
+    return DAY_OF_WEEK_MAP.get(dayOfWeek);
+  }
+
   public static String addZeros2(int number) {
     return number < 10 ? "0" + number : String.valueOf(number);
   }
@@ -107,5 +136,9 @@ public class Util {
     }
     builder.append(minutesTrue).append(" мин");
     return builder.toString();
+  }
+
+  public static void main(String[] args) {
+    System.out.println(getDayOfWeek("2018-12-14"));
   }
 }
