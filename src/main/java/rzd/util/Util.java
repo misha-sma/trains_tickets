@@ -4,10 +4,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.apache.commons.io.IOUtils;
 
 public class Util {
   private Util() {
@@ -44,6 +47,24 @@ public class Util {
 
   public static String loadText(String fileName) {
       return loadText(new File(fileName));
+  }
+
+  public static String loadTextWithResourceAsStream(String path) {
+    try (InputStream inputStream = Util.class.getResourceAsStream(path)) {
+      return IOUtils.toString(inputStream, "UTF-8");
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  public static byte[] loadBytesWithResourceAsStream(String path) {
+    try (InputStream inputStream = Util.class.getResourceAsStream(path)) {
+      return IOUtils.toByteArray(inputStream);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return null;
   }
 
   public static Map<String, String> parseParameters(String url) {

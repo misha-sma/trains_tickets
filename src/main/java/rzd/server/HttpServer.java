@@ -15,7 +15,8 @@ import java.net.URLDecoder;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import rzd.persistence.dao.CarriageDao;
 import rzd.persistence.dao.SeatDao;
 import rzd.persistence.dao.StationDao;
@@ -30,36 +31,39 @@ import rzd.renderer.SeatsRenderer;
 import rzd.util.Util;
 
 public class HttpServer {
+  private static final Logger logger = LoggerFactory.getLogger(HttpServer.class);
+  
 	public static final String HOME_PAGE;
 	public static final String HOME_PAGE_BEGIN;
 	public static final String HOME_PAGE_END;
-	public static byte[] faviconBytes;
+	public static final byte[] FAVICON_BYTES;
 	public static final Map<Integer, Integer> SEATS_COUNT_MAP = CarriageDao.getSeatsCountMap();
 	public static final Map<Integer, String> CARRIAGE_NAMES_MAP = CarriageDao.getCarriageNamesMap();
 	public static final String PASSENGER_PAGE;
 	public static final int PORT = 8080;
 	
 	static {
-		HOME_PAGE = Util.loadText("web/index.html");
+		HOME_PAGE = Util.loadTextWithResourceAsStream("/web/index.html");
 		int endBodyIndex = HOME_PAGE.indexOf("</body>");
 		HOME_PAGE_BEGIN = HOME_PAGE.substring(0, endBodyIndex);
 		HOME_PAGE_END = HOME_PAGE.substring(endBodyIndex);
-        String passengerPage = Util.loadText("web/passenger.html");
+        String passengerPage = Util.loadTextWithResourceAsStream("/web/passenger.html");
         int startIndex = passengerPage.indexOf("Данные пассажира");
         PASSENGER_PAGE = passengerPage.substring(startIndex);
-		File file = new File("web/favicon.ico");
-		try {
-			FileInputStream input = new FileInputStream(file);
-			faviconBytes = new byte[(int) file.length()];
-			input.read(faviconBytes);
-			input.close();
-		} catch (FileNotFoundException e) {
-			// logger.error(e);
-			e.printStackTrace();
-		} catch (IOException e) {
-			// logger.error(e);
-			e.printStackTrace();
-		}
+		FAVICON_BYTES=Util.loadBytesWithResourceAsStream("/web/favicon.ico");
+//        File file = new File("web/favicon.ico");
+//		try {
+//			FileInputStream input = new FileInputStream(file);
+//			faviconBytes = new byte[(int) file.length()];
+//			input.read(faviconBytes);
+//			input.close();
+//		} catch (FileNotFoundException e) {
+//			// logger.error(e);
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			// logger.error(e);
+//			e.printStackTrace();
+//		}
 	}
 
 	private static class SocketProcessor implements Runnable {
@@ -304,10 +308,10 @@ public class HttpServer {
 
 		private void writeFaviconResponse() throws Throwable {
 			String response = "HTTP/1.1 200 OK\r\n" + "Server: misha-sma-Server/2012\r\n"
-					+ "Content-Type: image/vnd.microsoft.icon\r\n" + "Content-Length: " + faviconBytes.length + "\r\n"
+					+ "Content-Type: image/vnd.microsoft.icon\r\n" + "Content-Length: " + FAVICON_BYTES.length + "\r\n"
 					+ "Connection: close\r\n\r\n";
 			os.write(response.getBytes());
-			os.write(faviconBytes);
+			os.write(FAVICON_BYTES);
 			os.flush();
 		}
 
@@ -326,8 +330,15 @@ public class HttpServer {
 
 	public static void main(String[] args) throws Throwable {
 		ServerSocket serverSocket = new ServerSocket(PORT);
-		// logger.info("Server started!!!");
+		 logger.info("Server started  lloooogggerrr info!!!");
+         logger.debug("Server started  lloooogggerrr debug!!!");
+         logger.warn("Server started  lloooogggerrr warn!!!");
+         logger.error("Server started  lloooogggerrr error!!!");
+         logger.error("dfdfdfdfmmmm", new NullPointerException());
 		System.out.println("Server started on port "+PORT+" !!!");
+//		for(int i=0;i<100000000;++i) {
+//		  logger.info("sfsdf sfsd sdf sf si eiwf oiew utg owtwitu wut owiwet wt  wt wtuoiwetuoiw owitu owtoiwutowiuwoet uwiouoiwtiweu toiwtuoiwt\n");
+//		}
 		while (true) {
 			Socket socket = serverSocket.accept();
 			// logger.info("---------------Client accepted------------------------");
