@@ -273,4 +273,37 @@ public static final int SEATS_HASH_BASE=1000;
     int delay = TrainDao.getTravelStayTime(idTrain, idDepartureStation);
     return Util.addMinutesToDateDate(departureDate, delay);
   }
+
+  public static int getSeatNumberByIdSeat(long idSeat) {
+    int seatNumber = -1;
+    Connection con = null;
+    PreparedStatement ps = null;
+    try {
+      con = DBConnection.getDbConnection();
+      con.setAutoCommit(false);
+      String sql = "SELECT seat_number FROM seats WHERE id_seat=?";
+      ps = con.prepareStatement(sql);
+      ps.setLong(1, idSeat);
+      ResultSet rs = ps.executeQuery();
+      if (rs.next()) {
+        seatNumber = rs.getInt(1);
+      }
+      rs.close();
+      con.commit();
+    } catch (ClassNotFoundException e) {
+      e.printStackTrace();
+    } catch (SQLException e) {
+      e.printStackTrace();
+    } finally {
+      try {
+        if (ps != null)
+          ps.close();
+        if (con != null)
+          con.close();
+      } catch (SQLException e) {
+        e.printStackTrace();
+      }
+    }
+    return seatNumber;
+  }
 }

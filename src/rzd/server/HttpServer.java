@@ -22,6 +22,7 @@ import rzd.persistence.dao.StationDao;
 import rzd.persistence.dao.TicketDao;
 import rzd.persistence.dao.TrainDao;
 import rzd.persistence.dao.UserDao;
+import rzd.persistence.entity.Carriage;
 import rzd.persistence.entity.SeatsSearchResult;
 import rzd.persistence.entity.Train;
 import rzd.persistence.entity.User;
@@ -36,7 +37,6 @@ public class HttpServer {
 	public static final Map<Integer, Integer> SEATS_COUNT_MAP = CarriageDao.getSeatsCountMap();
 	public static final Map<Integer, String> CARRIAGE_NAMES_MAP = CarriageDao.getCarriageNamesMap();
 	public static final String PASSENGER_PAGE;
-    public static final String SUCCESS_PAGE;
 	public static final int PORT = 8080;
 	
 	static {
@@ -47,7 +47,6 @@ public class HttpServer {
         String passengerPage = Util.loadText("web/passenger.html");
         int startIndex = passengerPage.indexOf("Данные пассажира");
         PASSENGER_PAGE = passengerPage.substring(startIndex);
-        SUCCESS_PAGE = Util.loadText("web/success.html");
 		File file = new File("web/favicon.ico");
 		try {
 			FileInputStream input = new FileInputStream(file);
@@ -102,7 +101,25 @@ public class HttpServer {
                     int idDestinationStation = Integer.parseInt(params.get("to"));
                     TicketDao.createTicket(idSeat, idDepartureStation, idDestinationStation, userNew.getIdUser());
 					SeatDao.updateSeat(idSeat, idDepartureStation, idDestinationStation);
-					writeHomePageResponse(SUCCESS_PAGE);
+					StringBuilder builder=new StringBuilder();
+					builder.append("<html>\n");
+					builder.append("<meta charset=\"UTF-8\" />\n");
+					builder.append("<body>\n");
+					builder.append("Вы успешно купили билет на ");
+					int idTrain=SeatDao.getIdTrainByIdSeat(idSeat);
+					int delay = TrainDao.getTravelStayTime(idTrain, idDepartureStation);
+					String date=SeatDao.getDepartureDateByIdSeat(idSeat, idDepartureStation); 
+					String trainHeader=getTrainHeader4Ticket(idTrain, date, delay,idDepartureStation, idDestinationStation);
+					builder.append(trainHeader);
+					builder.append("<br>\n");
+					String seatInfo=getSeatInfo(idSeat);
+					builder.append(seatInfo);
+                    builder.append("<br>\n");
+					String userInfo=getUserInfo(userNew);
+					builder.append(userInfo);
+					builder.append("</body>\n</html>");
+					writeHomePageResponse(builder.toString());
+//					writeHomePageResponse(SUCCESS_PAGE);
 				} else if (url.startsWith("?idSeat=")) {
                   // введение данных пассажира
                   try {
@@ -125,7 +142,9 @@ public class HttpServer {
                   String trainHeader=getTrainHeader(idTrain, date, delay, idDestinationStation);
                   builder.append(trainHeader);
                   builder.append("\n<br>\n");
-                  
+                  String seatInfo=getSeatInfo(idSeat);
+                  builder.append(seatInfo);
+                  builder.append("<br>\n");
                   
                   String passengerPage = PASSENGER_PAGE.replace("name=\"from\" value=\"\">", "name=\"from\" value=\""+idDepartureStation+"\">");
                   passengerPage = passengerPage.replace("name=\"to\" value=\"\">", "name=\"to\" value=\""+idDestinationStation+"\">");
@@ -239,16 +258,16 @@ public class HttpServer {
 						if (isAllDays) {
 							builder.append("<td>\n"
 									+ "<form method='get' name='selectDate'>\n<input type=\"date\" name=\"date\">\n"
-									+ "<input type=\"hidden\" name=\"idTrain\" value=\"" + idTrain + "\" />"
-									+ "<input type=\"hidden\" name=\"from\" value=\"" + idDepartureStation + "\" />"
-									+ "<input type=\"hidden\" name=\"to\" value=\"" + idDestinationStation + "\" />"
-									+ "<input type=\"submit\" name=\"submitDateButton\" value=\"Выбрать\">");
+									+ "<input type=\"hidden\" name=\"idTrain\" value=\"" + idTrain + "\">\n"
+									+ "<input type=\"hidden\" name=\"from\" value=\"" + idDepartureStation + "\">\n"
+									+ "<input type=\"hidden\" name=\"to\" value=\"" + idDestinationStation + "\">\n"
+									+ "<input type=\"submit\" name=\"submitDateButton\" value=\"Выбрать\">\n");
 						} else {
 							builder.append("<td>\n<form method='get' name='selectSeat'>\n"
-									+ "<input type=\"hidden\" name=\"date\" value=\"" + date + "\" />"
-									+ "<input type=\"hidden\" name=\"idTrain\" value=\"" + idTrain + "\" />"
-									+ "<input type=\"hidden\" name=\"from\" value=\"" + idDepartureStation + "\" />"
-									+ "<input type=\"hidden\" name=\"to\" value=\"" + idDestinationStation + "\" />"
+									+ "<input type=\"hidden\" name=\"date\" value=\"" + date + "\">\n"
+									+ "<input type=\"hidden\" name=\"idTrain\" value=\"" + idTrain + "\">\n"
+									+ "<input type=\"hidden\" name=\"from\" value=\"" + idDepartureStation + "\">\n"
+									+ "<input type=\"hidden\" name=\"to\" value=\"" + idDestinationStation + "\">\n"
 									+ "<input type=\"submit\" name=\"selectSeatButton\" value=\"Выбрать место\">\n");
 						}
 						builder.append("</form>\n" + train.getDepartureDays() + "</td>\n</tr>\n");
@@ -308,7 +327,7 @@ public class HttpServer {
 	public static void main(String[] args) throws Throwable {
 		ServerSocket serverSocket = new ServerSocket(PORT);
 		// logger.info("Server started!!!");
-		System.out.println("Server started!!!");
+		System.out.println("Server started on port "+PORT+" !!!");
 		while (true) {
 			Socket socket = serverSocket.accept();
 			// logger.info("---------------Client accepted------------------------");
@@ -347,14 +366,57 @@ public class HttpServer {
     Train train = TrainDao.getTrainById(idTrain);
     String trainNameQuotes = train.getName() == null ? "" : "&laquo;" + train.getName() + "&raquo;";
     builder.append("Поезд №" + idTrain + " " + departureStationTrain + " - " + destinationStationTrain + " "
-        + trainNameQuotes + "<br>");
+        + trainNameQuotes + "<br>\n");
     String depTime = Util.addMinutesToDate(train.getDepartureTime(), delay);
     builder.append(
-        "Отправление " + Util.convertDateToDots(date) + " " + Util.getDayOfWeek(date) + " в " + depTime + "<br>");
+        "Отправление " + Util.convertDateToDots(date) + " " + Util.getDayOfWeek(date) + " в " + depTime + "<br>\n");
     int delayDest = TrainDao.getTravelTime(idTrain, idDestinationStation);
     String[] destDate = Util.calcDestDate(date, depTime, delayDest - delay);
-    builder.append("Прибытие " + destDate[0] + " " + destDate[2] + " в " + destDate[1] + "<br>");
-    builder.append("Время в пути "+Util.formatMinutes(delayDest-delay)+"<br>");
+    builder.append("Прибытие " + destDate[0] + " " + destDate[2] + " в " + destDate[1] + "<br>\n");
+    builder.append("Время в пути "+Util.formatMinutes(delayDest-delay)+"<br>\n");
+    return builder.toString();
+  }
+  
+  private static String getTrainHeader4Ticket(int idTrain, String date, int delay, int idDepartureStation,
+      int idDestinationStation) {
+    StringBuilder builder = new StringBuilder();
+    String departureStation = StationDao.getStationNameById(idDepartureStation);
+    String destinationStation = StationDao.getStationNameById(idDestinationStation);
+    String departureStationTrain = TrainDao.getDepartureStation(idTrain);
+    String destinationStationTrain = TrainDao.getDestinationStation(idTrain);
+    Train train = TrainDao.getTrainById(idTrain);
+    String trainNameQuotes = train.getName() == null ? "" : "&laquo;" + train.getName() + "&raquo;";
+    builder.append("Поезд №" + idTrain + " " + departureStationTrain + " - " + destinationStationTrain + " "
+        + trainNameQuotes + "<br>\n");
+    String depTime = Util.addMinutesToDate(train.getDepartureTime(), delay);
+    builder.append("Отправление " + Util.convertDateToDots(date) + " " + Util.getDayOfWeek(date) + " в " + depTime
+        + " от станции " + departureStation + "<br>\n");
+    int delayDest = TrainDao.getTravelTime(idTrain, idDestinationStation);
+    String[] destDate = Util.calcDestDate(date, depTime, delayDest - delay);
+    builder.append("Прибытие " + destDate[0] + " " + destDate[2] + " в " + destDate[1] + " на станцию "
+        + destinationStation + "<br>\n");
+    builder.append("Время в пути " + Util.formatMinutes(delayDest - delay) + "<br>\n");
+    return builder.toString();
+  }
+
+  private static String getSeatInfo(long idSeat) {
+    StringBuilder builder = new StringBuilder();
+    int seatNumber = SeatDao.getSeatNumberByIdSeat(idSeat);
+    Carriage carriage = CarriageDao.getCarriageByIdSeat(idSeat);
+    builder.append("Вагон №" + carriage.getCarriageNumber() + " " + CARRIAGE_NAMES_MAP.get(carriage.getIdCarriageType())
+        + "<br>\n");
+    builder.append("Место " + seatNumber + " " + Util.getSeatType(seatNumber, carriage.getIdCarriageType()) + "<br>\n");
+    return builder.toString();
+  }
+
+  private static String getUserInfo(User user) {
+    StringBuilder builder = new StringBuilder();
+    builder.append("Данные пассажира<br>\n");
+    builder.append(user.getSurname() + " " + user.getName() + " " + user.getPatronymic() + "<br>\n");
+    builder.append("Дата рождения " + Util.addMinutesToDateFull(user.getBirthday(), 0)[0] + "<br>\n");
+    builder.append("Паспорт " + user.getIdUser() + "<br>\n");
+    builder.append("Email " + user.getEmail() + "<br>\n");
+    builder.append("Телефон +" + user.getPhone() + "<br>\n");
     return builder.toString();
   }
 }

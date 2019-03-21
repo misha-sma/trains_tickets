@@ -51,6 +51,44 @@ public class CarriageDao {
 		return carriages;
 	}
 
+  public static Carriage getCarriageByIdSeat(long idSeat) {
+    Carriage carriage = null;
+    Connection con = null;
+    PreparedStatement ps = null;
+    try {
+      con = DBConnection.getDbConnection();
+      con.setAutoCommit(false);
+      String sql = "SELECT * from carriages WHERE id_carriage=(SELECT id_carriage FROM seats WHERE id_seat=?)";
+      ps = con.prepareStatement(sql);
+      ps.setLong(1, idSeat);
+      ResultSet rs = ps.executeQuery();
+      if (rs.next()) {
+        long idCarriage = rs.getLong(1);
+        int idTrain = rs.getInt(2);
+        Date departureTime = new Date(rs.getTimestamp(3).getTime());
+        int carriageNumber = rs.getInt(4);
+        int idCarriageType = rs.getInt(5);
+        carriage = new Carriage(idCarriage, idTrain, departureTime, carriageNumber, idCarriageType);
+      }
+      rs.close();
+      con.commit();
+    } catch (ClassNotFoundException e) {
+      e.printStackTrace();
+    } catch (SQLException e) {
+      e.printStackTrace();
+    } finally {
+      try {
+        if (ps != null)
+          ps.close();
+        if (con != null)
+          con.close();
+      } catch (SQLException e) {
+        e.printStackTrace();
+      }
+    }
+    return carriage;
+  }
+
 	public static Map<Integer, Integer> getSeatsCountMap() {
 		Map<Integer, Integer> result = new HashMap<Integer, Integer>();
 		Connection con = null;
