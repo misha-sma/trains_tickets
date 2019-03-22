@@ -185,39 +185,6 @@ public class TrainDao {
     }
     return stationName;
   }
-
-  public static int getIdStation(String station) {
-    int idStation = -1;
-    Connection con = null;
-    PreparedStatement ps = null;
-    try {
-        con = DBConnection.getDbConnection();
-        con.setAutoCommit(false);
-        String sql = "SELECT id_station FROM stations WHERE name ILIKE ?";
-        ps = con.prepareStatement(sql);
-        ps.setString(1, station);
-        ResultSet rs = ps.executeQuery();
-        if (rs.next()) {
-            idStation = rs.getInt(1);
-        }
-        rs.close();
-        con.commit();
-    } catch (ClassNotFoundException e) {
-        e.printStackTrace();
-    } catch (SQLException e) {
-        e.printStackTrace();
-    } finally {
-        try {
-            if (ps != null)
-                ps.close();
-            if (con != null)
-                con.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-    return idStation;
-    }
   
 	// на все дни
 	public static List<Integer> getTrainsByStations(int idDepartureStation, int idDestinationStation) {

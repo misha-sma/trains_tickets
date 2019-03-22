@@ -4,39 +4,47 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import rzd.persistence.DBConnection;
 
 public class StationDao {
-  public static String getStationNameById(int idStation) {
-    String name = null;
-    Connection con = null;
-    PreparedStatement ps = null;
-    try {
-      con = DBConnection.getDbConnection();
-      con.setAutoCommit(false);
-      String sql = "SELECT name FROM stations WHERE id_station=?";
-      ps = con.prepareStatement(sql);
-      ps.setInt(1, idStation);
-      ResultSet rs = ps.executeQuery();
-      if (rs.next()) {
-        name = rs.getString(1);
-      }
-      rs.close();
-      con.commit();
-    } catch (ClassNotFoundException e) {
-      e.printStackTrace();
-    } catch (SQLException e) {
-      e.printStackTrace();
-    } finally {
-      try {
-        if (ps != null)
-          ps.close();
-        if (con != null)
-          con.close();
-      } catch (SQLException e) {
-        e.printStackTrace();
-      }
-    }
-    return name;
-  }
+	private static final Logger logger = LoggerFactory.getLogger(StationDao.class);
+
+	public static final Map<String, Integer> STATIONS_NAME_ID_MAP = new HashMap<String, Integer>();
+	public static final Map<Integer, String> STATIONS_ID_NAME_MAP = new HashMap<Integer, String>();
+
+	public static final int BATCH_SIZE = 1000;
+
+	public static void loadStationsCaches() {
+		int count = Integer.MAX_VALUE;
+		int offset = 0;
+		String sql = "SELECT * FROM stations ORDER BY id_station LIMIT ? OFFSET ?";
+		while (count >= BATCH_SIZE) {
+			try (Connection con = DBConnection.getDbConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+				ps.setInt(1, BATCH_SIZE);
+				ps.setInt(2, offset);
+				ResultSet rs = ps.executeQuery();
+				count = 0;
+				while (rs.next()) {
+					++count;
+					int idStation = rs.getInt(1);
+					String name = rs.getString(2);
+					STATIONS_NAME_ID_MAP.put(name.toLowerCase(), idStation);
+					STATIONS_ID_NAME_MAP.put(idStation, name);
+				}
+				rs.close();
+			} catch (ClassNotFoundException e) {
+				logger.error(e.getMessage(), e);
+			} catch (SQLException e) {
+				logger.error(e.getMessage(), e);
+			}
+			offset += count;
+		}
+	}
+
 }

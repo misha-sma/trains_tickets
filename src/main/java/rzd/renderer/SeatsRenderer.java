@@ -2,8 +2,8 @@ package rzd.renderer;
 
 import java.util.Map;
 
+import rzd.persistence.dao.CarriageDao;
 import rzd.persistence.dao.SeatDao;
-import rzd.server.HttpServer;
 
 public class SeatsRenderer {
 	private static final String TABLE_GAP = "<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>\n";
@@ -35,7 +35,7 @@ public class SeatsRenderer {
 	private static String renderDoubleDecker(int carriageNumber, int carriageType, Map<Integer, Long> seatsMap,
 			int idDepartureStation, int idDestinationStation) {
 		// int seatsCount = HttpServer.SEATS_COUNT_MAP.get(carriageType);
-		String carriageName = HttpServer.CARRIAGE_NAMES_MAP.get(carriageType);
+		String carriageName = CarriageDao.CARRIAGE_NAMES_MAP.get(carriageType);
 		StringBuilder builder = new StringBuilder();
 		builder.append("<table border=\"0\">\n");
 		builder.append("<caption>Вагон номер " + carriageNumber + " " + carriageName + "</caption>\n");
@@ -77,7 +77,7 @@ public class SeatsRenderer {
 	private static String renderSeating(int carriageNumber, int carriageType, Map<Integer, Long> seatsMap,
 			int idDepartureStation, int idDestinationStation) {
 		// int seatsCount = HttpServer.SEATS_COUNT_MAP.get(carriageType);
-		String carriageName = HttpServer.CARRIAGE_NAMES_MAP.get(carriageType);
+		String carriageName = CarriageDao.CARRIAGE_NAMES_MAP.get(carriageType);
 		StringBuilder builder = new StringBuilder();
 		builder.append("<table border=\"0\">\n");
 		builder.append("<caption>Вагон номер " + carriageNumber + " " + carriageName + "</caption>\n");
@@ -113,7 +113,7 @@ public class SeatsRenderer {
 	private static String renderCB(int carriageNumber, int carriageType, Map<Integer, Long> seatsMap,
 			int idDepartureStation, int idDestinationStation) {
 		// int seatsCount = HttpServer.SEATS_COUNT_MAP.get(carriageType);
-		String carriageName = HttpServer.CARRIAGE_NAMES_MAP.get(carriageType);
+		String carriageName = CarriageDao.CARRIAGE_NAMES_MAP.get(carriageType);
 		StringBuilder builder = new StringBuilder();
 		builder.append("<table border=\"0\">\n");
 		builder.append("<caption>Вагон номер " + carriageNumber + " " + carriageName + "</caption>\n");
@@ -131,7 +131,7 @@ public class SeatsRenderer {
 	private static String renderCoupe(int carriageNumber, int carriageType, Map<Integer, Long> seatsMap,
 			int idDepartureStation, int idDestinationStation) {
 		// int seatsCount = HttpServer.SEATS_COUNT_MAP.get(carriageType);
-		String carriageName = HttpServer.CARRIAGE_NAMES_MAP.get(carriageType);
+		String carriageName = CarriageDao.CARRIAGE_NAMES_MAP.get(carriageType);
 		StringBuilder builder = new StringBuilder();
 		builder.append("<table border=\"0\">\n");
 		builder.append("<caption>Вагон номер " + carriageNumber + " " + carriageName + "</caption>\n");
@@ -157,7 +157,7 @@ public class SeatsRenderer {
 	private static String renderEconom(int carriageNumber, int carriageType, Map<Integer, Long> seatsMap,
 			int idDepartureStation, int idDestinationStation) {
 		// int seatsCount = HttpServer.SEATS_COUNT_MAP.get(carriageType);
-		String carriageName = HttpServer.CARRIAGE_NAMES_MAP.get(carriageType);
+		String carriageName = CarriageDao.CARRIAGE_NAMES_MAP.get(carriageType);
 		StringBuilder builder = new StringBuilder();
 		builder.append("<table border=\"0\">\n");
 		builder.append("<caption>Вагон номер " + carriageNumber + " " + carriageName + "</caption>\n");

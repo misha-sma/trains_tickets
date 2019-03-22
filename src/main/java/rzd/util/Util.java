@@ -1,8 +1,5 @@
 package rzd.util;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;
@@ -11,8 +8,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Util {
+	private static final Logger logger = LoggerFactory.getLogger(Util.class);
+
   private Util() {
   }
 
@@ -28,44 +29,44 @@ public class Util {
     DAY_OF_WEEK_MAP.put(7, "сб");
   }
   
-  public static String loadText(File file) {
-      try {
-          FileInputStream input = new FileInputStream(file);
-          byte[] bytes = new byte[(int) file.length()];
-          input.read(bytes);
-          input.close();
-          return new String(bytes);
-      } catch (FileNotFoundException e) {
-          //logger.error(e);
-          e.printStackTrace();
-      } catch (IOException e) {
-          //logger.error(e);
-        e.printStackTrace();
-      }
-      return null;
-  }
+//  public static String loadText(File file) {
+//      try {
+//          FileInputStream input = new FileInputStream(file);
+//          byte[] bytes = new byte[(int) file.length()];
+//          input.read(bytes);
+//          input.close();
+//          return new String(bytes);
+//      } catch (FileNotFoundException e) {
+//          //logger.error(e);
+//          e.printStackTrace();
+//      } catch (IOException e) {
+//          //logger.error(e);
+//        e.printStackTrace();
+//      }
+//      return null;
+//  }
 
-  public static String loadText(String fileName) {
-      return loadText(new File(fileName));
-  }
+//  public static String loadText(String fileName) {
+//      return loadText(new File(fileName));
+//  }
 
-  public static String loadTextWithResourceAsStream(String path) {
-    try (InputStream inputStream = Util.class.getResourceAsStream(path)) {
-      return IOUtils.toString(inputStream, "UTF-8");
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    return null;
-  }
+	public static String loadTextWithResourceAsStream(String path) {
+		try (InputStream inputStream = Util.class.getResourceAsStream(path)) {
+			return IOUtils.toString(inputStream, "UTF-8");
+		} catch (IOException e) {
+			logger.error(e.getMessage(), e);
+		}
+		return null;
+	}
 
-  public static byte[] loadBytesWithResourceAsStream(String path) {
-    try (InputStream inputStream = Util.class.getResourceAsStream(path)) {
-      return IOUtils.toByteArray(inputStream);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    return null;
-  }
+	public static byte[] loadBytesWithResourceAsStream(String path) {
+		try (InputStream inputStream = Util.class.getResourceAsStream(path)) {
+			return IOUtils.toByteArray(inputStream);
+		} catch (IOException e) {
+			logger.error(e.getMessage(), e);
+		}
+		return null;
+	}
 
   public static Map<String, String> parseParameters(String url) {
     Map<String, String> result = new HashMap<String, String>();

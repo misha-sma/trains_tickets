@@ -8,7 +8,7 @@ public class DBConnection {
 
 	private final static String JDBC_DRIVER = "org.postgresql.Driver";
 
-	private final static String HOST = "localhost";// "jdbc:postgresql://localhost:5434/content_builder_scholar_pdf_m2";
+	private final static String HOST = "localhost";
 	private final static String PORT = "5432";
 	private final static String USER = "postgres";
 	private final static String PASSWORD = "postgres";

@@ -22,7 +22,7 @@ public class SeatDao {
 public static final int SEATS_HASH_BASE=1000;
 	
 	public static void addOneCarriageSeats(Carriage carriage) {
-		for (int seatNumber = 1; seatNumber <= MainClass.SEATS_COUNT_MAP
+		for (int seatNumber = 1; seatNumber <= CarriageDao.SEATS_COUNT_MAP
 				.get(carriage.getIdCarriageType()); ++seatNumber) {
 			addOneSeat(carriage, seatNumber);
 		}

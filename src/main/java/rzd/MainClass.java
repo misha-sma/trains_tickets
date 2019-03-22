@@ -10,7 +10,7 @@ import rzd.persistence.dao.TrainDao;
 import rzd.persistence.entity.Carriage;
 
 public class MainClass {
-	public static Map<Integer, Integer> SEATS_COUNT_MAP = CarriageDao.getSeatsCountMap();
+	//public static Map<Integer, Integer> SEATS_COUNT_MAP = CarriageDao.getSeatsCountMap();
 
 	public static void main(String[] args) {
 		Date ddd = new Date(System.currentTimeMillis());

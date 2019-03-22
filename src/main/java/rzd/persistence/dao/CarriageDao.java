@@ -10,10 +10,19 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import rzd.persistence.DBConnection;
 import rzd.persistence.entity.Carriage;
+import rzd.server.HttpServer;
 
 public class CarriageDao {
+	private static final Logger logger = LoggerFactory.getLogger(CarriageDao.class);
+	
+	public static final Map<Integer, Integer> SEATS_COUNT_MAP = new HashMap<Integer, Integer>();
+	public static final Map<Integer, String> CARRIAGE_NAMES_MAP = new HashMap<Integer, String>();
+
 	public static List<Carriage> getCarriages() {
 		List<Carriage> carriages = new LinkedList<Carriage>();
 		Connection con = null;
@@ -89,71 +98,23 @@ public class CarriageDao {
     return carriage;
   }
 
-	public static Map<Integer, Integer> getSeatsCountMap() {
-		Map<Integer, Integer> result = new HashMap<Integer, Integer>();
-		Connection con = null;
-		PreparedStatement ps = null;
-		try {
-			con = DBConnection.getDbConnection();
-			con.setAutoCommit(false);
-			String sql = "SELECT id_carriage_type, seats_count FROM carriage_types";
-			ps = con.prepareStatement(sql);
-			ResultSet rs = ps.executeQuery();
-			while (rs.next()) {
-				int idCarriageType = rs.getInt(1);
-				int seatsCount = rs.getInt(2);
-				result.put(idCarriageType, seatsCount);
-			}
-			rs.close();
-			con.commit();
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (ps != null)
-					ps.close();
-				if (con != null)
-					con.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-		}
-		return result;
-	}
-
-	public static Map<Integer, String> getCarriageNamesMap() {
-		Map<Integer, String> result = new HashMap<Integer, String>();
-		Connection con = null;
-		PreparedStatement ps = null;
-		try {
-			con = DBConnection.getDbConnection();
-			con.setAutoCommit(false);
-			String sql = "SELECT id_carriage_type, name FROM carriage_types";
-			ps = con.prepareStatement(sql);
+	public static void loadCarriageCaches() {
+		String sql = "SELECT * FROM carriage_types";
+		try (Connection con = DBConnection.getDbConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
 				int idCarriageType = rs.getInt(1);
 				String name = rs.getString(2);
-				result.put(idCarriageType, name);
+				int seatsCount = rs.getInt(3);
+				CARRIAGE_NAMES_MAP.put(idCarriageType, name);
+				SEATS_COUNT_MAP.put(idCarriageType, seatsCount);
 			}
 			rs.close();
-			con.commit();
 		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (ps != null)
-					ps.close();
-				if (con != null)
-					con.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			logger.error(e.getMessage(), e);
 		}
-		return result;
 	}
+	
 }
