@@ -181,15 +181,15 @@ public class HttpServer {
 					Map<String, String> params = Util.parseParameters(url);
 					String departureStation = params.get("from").toLowerCase();
 					String destinationStation = params.get("to").toLowerCase();
-//					int idDepartureStation = StationDao.getIdStation(departureStation);
-//					int idDestinationStation = StationDao.getIdStation(destinationStation);
 					int idDepartureStation = StationDao.STATIONS_NAME_ID_MAP.get(departureStation);
 					int idDestinationStation = StationDao.STATIONS_NAME_ID_MAP.get(destinationStation);
+					String departureStationTrue = StationDao.STATIONS_ID_NAME_MAP.get(idDepartureStation);
+					String destinationStationTrue = StationDao.STATIONS_ID_NAME_MAP.get(idDestinationStation);
 					String date = params.get("date");
 					StringBuilder builder = new StringBuilder();
 					String header = HOME_PAGE_BEGIN.replace("placeholder=\"Откуда\"",
-							"value=\"" + departureStation + "\"");
-					header = header.replace("placeholder=\"Куда\"", "value=\"" + destinationStation + "\"");
+							"value=\"" + departureStationTrue + "\"");
+					header = header.replace("placeholder=\"Куда\"", "value=\"" + destinationStationTrue + "\"");
 					header = header.replace("value=\"\"", "value=\"" + date + "\"");
 					builder.append(header);
 					builder.append("<table border=\"1\">\n");
