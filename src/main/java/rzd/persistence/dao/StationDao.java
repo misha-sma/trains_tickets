@@ -19,13 +19,14 @@ public class StationDao {
 	public static final Map<Integer, String> STATIONS_ID_NAME_MAP = new HashMap<Integer, String>();
 
 	public static final int BATCH_SIZE = 1000;
+	public static final String STATIONS_SQL = "SELECT * FROM stations ORDER BY id_station LIMIT ? OFFSET ?";
 
 	public static void loadStationsCaches() {
 		int count = Integer.MAX_VALUE;
 		int offset = 0;
-		String sql = "SELECT * FROM stations ORDER BY id_station LIMIT ? OFFSET ?";
 		while (count >= BATCH_SIZE) {
-			try (Connection con = DBConnection.getDbConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+			try (Connection con = DBConnection.getDbConnection();
+					PreparedStatement ps = con.prepareStatement(STATIONS_SQL)) {
 				ps.setInt(1, BATCH_SIZE);
 				ps.setInt(2, offset);
 				ResultSet rs = ps.executeQuery();

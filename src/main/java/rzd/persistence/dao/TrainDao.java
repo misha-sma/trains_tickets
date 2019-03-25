@@ -4,17 +4,31 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rzd.persistence.DBConnection;
 import rzd.persistence.entity.Train;
 
 public class TrainDao {
+	private static final Logger logger = LoggerFactory.getLogger(TrainDao.class);
 
-  public static int getTravelStayTime(int idTrain, int idStation) {
+	public static final String TRAINS_ALL_DAYS_SQL = "SELECT t1.id_train FROM (SELECT * FROM trains_stations WHERE id_station=?) AS t1 INNER JOIN "
+			+ "(SELECT * FROM trains_stations WHERE id_station=?) AS t2 ON "
+			+ "(t1.id_train=t2.id_train AND t1.travel_time<t2.travel_time) ORDER BY t1.id_train";
+
+	public static final String TRAINS_DATE_SQL = "SELECT DISTINCT carriages.id_train FROM carriages INNER JOIN (SELECT t1.id_train, t1.travel_time, t1.stay_time "
+			+ "FROM (SELECT * FROM trains_stations WHERE id_station=?) AS t1 INNER JOIN (SELECT * FROM trains_stations WHERE "
+			+ "id_station=?) AS t2 ON (t1.id_train=t2.id_train AND t1.travel_time<t2.travel_time)) AS t3 ON "
+			+ "(carriages.id_train=t3.id_train AND departure_time+(t3.travel_time+t3.stay_time)*interval '1 minute'>='?"
+			+ " 00:00:00' AND departure_time+(t3.travel_time+t3.stay_time)*interval '1 minute'<='?"
+			+ " 23:59:59') ORDER BY carriages.id_train";
+
+	  public static int getTravelStayTime(int idTrain, int idStation) {
     int travelStayTime = -1;
     Connection con = null;
     PreparedStatement ps = null;
@@ -189,15 +203,8 @@ public class TrainDao {
 	// на все дни
 	public static List<Integer> getTrainsByStations(int idDepartureStation, int idDestinationStation) {
 		List<Integer> result = new LinkedList<Integer>();
-		Connection con = null;
-		PreparedStatement ps = null;
-		try {
-			con = DBConnection.getDbConnection();
-			con.setAutoCommit(false);
-			String sql = "SELECT t1.id_train FROM (SELECT * FROM trains_stations WHERE id_station=?) AS t1 INNER JOIN "
-					+ "(SELECT * FROM trains_stations WHERE id_station=?) AS t2 ON "
-					+ "(t1.id_train=t2.id_train AND t1.travel_time<t2.travel_time) ORDER BY t1.id_train";
-			ps = con.prepareStatement(sql);
+		try (Connection con = DBConnection.getDbConnection();
+				PreparedStatement ps = con.prepareStatement(TRAINS_ALL_DAYS_SQL)) {
 			ps.setInt(1, idDepartureStation);
 			ps.setInt(2, idDestinationStation);
 			ResultSet rs = ps.executeQuery();
@@ -206,68 +213,34 @@ public class TrainDao {
 				result.add(idTrain);
 			}
 			rs.close();
-			con.commit();
 		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (ps != null)
-					ps.close();
-				if (con != null)
-					con.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			logger.error(e.getMessage(), e);
 		}
 		return result;
 	}
 
 	// на заданный день
 	public static List<Integer> getTrainsByStationsAndDate(int idDepartureStation, int idDestinationStation,
-	    String dateStr) {
-//		Calendar cal = Calendar.getInstance();
-//		cal.setTime(date);
-//		int year = cal.get(Calendar.YEAR);
-//		int month = cal.get(Calendar.MONTH) + 1;
-//		int day = cal.get(Calendar.DAY_OF_MONTH);
-//		String dateStr = String.valueOf(year) + "-" + month + "-" + day;
+			String dateStr) {
 		List<Integer> result = new LinkedList<Integer>();
-		Connection con = null;
-		PreparedStatement ps = null;
-		try {
-			con = DBConnection.getDbConnection();
-			con.setAutoCommit(false);
-			String sql = "SELECT DISTINCT carriages.id_train FROM carriages INNER JOIN (SELECT t1.id_train, t1.travel_time, t1.stay_time "
-					+ "FROM (SELECT * FROM trains_stations WHERE id_station=?) AS t1 INNER JOIN (SELECT * FROM trains_stations WHERE "
-					+ "id_station=?) AS t2 ON (t1.id_train=t2.id_train AND t1.travel_time<t2.travel_time)) AS t3 ON "
-					+ "(carriages.id_train=t3.id_train AND departure_time+(t3.travel_time+t3.stay_time)*interval '1 minute'>='"
-					+ dateStr + " 00:00:00' AND departure_time+(t3.travel_time+t3.stay_time)*interval '1 minute'<='"
-					+ dateStr + " 23:59:59') ORDER BY carriages.id_train";
-			ps = con.prepareStatement(sql);
+		try (Connection con = DBConnection.getDbConnection();
+				PreparedStatement ps = con.prepareStatement(TRAINS_DATE_SQL)) {
 			ps.setInt(1, idDepartureStation);
 			ps.setInt(2, idDestinationStation);
+			ps.setString(3, dateStr);
+			ps.setString(4, dateStr);
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
 				int idTrain = rs.getInt(1);
 				result.add(idTrain);
 			}
 			rs.close();
-			con.commit();
 		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (ps != null)
-					ps.close();
-				if (con != null)
-					con.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			logger.error(e.getMessage(), e);
 		}
 		return result;
 	}

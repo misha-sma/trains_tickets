@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 
 import rzd.persistence.DBConnection;
 import rzd.persistence.entity.Carriage;
-import rzd.server.HttpServer;
 
 public class CarriageDao {
 	private static final Logger logger = LoggerFactory.getLogger(CarriageDao.class);
@@ -23,6 +22,8 @@ public class CarriageDao {
 	public static final Map<Integer, Integer> SEATS_COUNT_MAP = new HashMap<Integer, Integer>();
 	public static final Map<Integer, String> CARRIAGE_NAMES_MAP = new HashMap<Integer, String>();
 
+	public static final String CARRIAGE_TYPES_SQL = "SELECT * FROM carriage_types";
+	
 	public static List<Carriage> getCarriages() {
 		List<Carriage> carriages = new LinkedList<Carriage>();
 		Connection con = null;
@@ -99,8 +100,8 @@ public class CarriageDao {
   }
 
 	public static void loadCarriageCaches() {
-		String sql = "SELECT * FROM carriage_types";
-		try (Connection con = DBConnection.getDbConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+		try (Connection con = DBConnection.getDbConnection();
+				PreparedStatement ps = con.prepareStatement(CARRIAGE_TYPES_SQL)) {
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
 				int idCarriageType = rs.getInt(1);
