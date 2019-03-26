@@ -22,6 +22,7 @@ import rzd.persistence.dao.TrainDao;
 import rzd.persistence.dao.UserDao;
 import rzd.persistence.entity.SeatsSearchResult;
 import rzd.persistence.entity.Train;
+import rzd.persistence.entity.TrainTravelStayTimes;
 import rzd.persistence.entity.User;
 import rzd.renderer.HtmlRenderer;
 import rzd.renderer.SeatsRenderer;
@@ -66,9 +67,9 @@ public class HttpServer {
 		public void run() {
 			try (Socket socketLocal = socket) {
 				String url = getUrl();
-				logger.info("url=" + url);
+//				logger.info("url=" + url);
 				url = URLDecoder.decode(url, "UTF8");
-				logger.info("url decoded=" + url);
+				logger.info("url=" + url);
 				if (url.equals("favicon.ico")) {
 					writeFaviconResponse();
 				} else if (url.startsWith("?surname=")) {
@@ -201,29 +202,27 @@ public class HttpServer {
 					} else {
 						builder.append("<th></th>\n</tr>\n");
 					}
-					List<Integer> trains = null;
+					List<TrainTravelStayTimes> trains = null;
 					if (isAllDays) {
 						trains = TrainDao.getTrainsByStations(idDepartureStation, idDestinationStation);
 					} else {
 						trains = TrainDao.getTrainsByStationsAndDate(idDepartureStation, idDestinationStation, date);
 					}
 
-					for (int idTrain : trains) {
-						String trainDepartureStation = TrainDao.getDepartureStation(idTrain);
-						String trainDestinationStation = TrainDao.getDestinationStation(idTrain);
-						Train train = TrainDao.getTrainById(idTrain);
-						int departureTravelTime = TrainDao.getTravelStayTime(idTrain, idDepartureStation);
-						int destinationTravelTime = TrainDao.getTravelTime(idTrain, idDestinationStation);
-						String depTime = Util.addMinutesToDate(train.getDepartureTime(), departureTravelTime);
-						String destTime = Util.addMinutesToDate(train.getDepartureTime(), destinationTravelTime);
+					for (TrainTravelStayTimes trainTravelStayTimes : trains) {
+						int idTrain=trainTravelStayTimes.getIdTrain();
+						Train train=TrainDao.TRAINS_MAP.get(idTrain);
+						String depTime = Util.addMinutesToDate(train.getDepartureTime(), trainTravelStayTimes.getDepartureTravelStayTime());
+						String destTime = Util.addMinutesToDate(train.getDepartureTime(), trainTravelStayTimes.getDestinationTravelTime());
 						builder.append("<tr><td>").append(
-								train.getIdTrain() + " " + trainDepartureStation + " - " + trainDestinationStation);
-						if (train.getName() != null && !train.getName().isEmpty()) {
+								idTrain + " " + train.getDepartureStation() + " - " + train.getDestinationStation());
+						if (train.getName() != null) {
 							builder.append("<br>" + "&laquo;" + train.getName() + "&raquo;");
 						}
 						builder.append("</td>\n<td>" + depTime + "</td>\n<td>"
-								+ Util.formatMinutes(destinationTravelTime - departureTravelTime) + "</td>\n<td>"
-								+ destTime + "</td>\n");
+								+ Util.formatMinutes(trainTravelStayTimes.getDestinationTravelTime()
+										- trainTravelStayTimes.getDepartureTravelStayTime())
+								+ "</td>\n<td>" + destTime + "</td>\n");
 						if (isAllDays) {
 							builder.append("<td>\n"
 									+ "<form method='get' name='selectDate'>\n<input type=\"date\" name=\"date\">\n"
@@ -295,5 +294,6 @@ public class HttpServer {
 	private static void loadCaches() {
 		CarriageDao.loadCarriageCaches();
 		StationDao.loadStationsCaches();
+		TrainDao.loadTrainsCache();
 	}
 }

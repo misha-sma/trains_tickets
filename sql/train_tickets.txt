@@ -146,3 +146,29 @@ String response = "HTTP/1.1 200 OK\r\n" + "Server: misha-sma-Server/2012\r\n"
 // 
 select departure_time from carriages where id_carriage=(select id_carriage from seats where id_seat=90);
 
+update trains_stations set stay_time=-1 where id_train=618 and id_station=9;
+
+select t1.*, trains_stations.id_station from (select trains.*, trains_stations.id_station from trains inner join trains_stations on trains.id_train=trains_stations.id_train and travel_time=0) as t1 inner join 
+trains_stations on t1.id_train=trains_stations.id_train and stay_time=-1;
+ id_train |    name    | departure_time | departure_days | id_station | id_station 
+----------+------------+----------------+----------------+------------+------------
+      617 | Белые ночи | 19:13:00       | ежд            |          9 |          1
+      618 | Белые ночи | 20:40:00       | ежд            |          1 |          9
+(2 rows)
+
+select t1.id_train, t1.travel_time+t1.stay_time, t2.travel_time from trains_stations as t1 inner join trains_stations as t2 on t1.id_station=1 and t2.id_station=7 and t1.id_train=t2.id_train AND t1.travel_time<t2.travel_time ORDER BY t1.id_train;
+ id_train | ?column? | travel_time 
+----------+----------+-------------
+      618 |        0 |         576
+(1 row)
+
+
+SELECT DISTINCT carriages.id_train, t3.travel_stay_time, t3.travel_time FROM carriages INNER JOIN (SELECT t1.id_train, t1.travel_time+t1.stay_time as travel_stay_time, t2.travel_time 
+FROM trains_stations as t1 inner join trains_stations as t2 on t1.id_station=1 and t2.id_station=7 and t1.id_train=t2.id_train AND t1.travel_time<t2.travel_time) AS t3 ON 
+(carriages.id_train=t3.id_train AND departure_time+t3.travel_stay_time*interval '1 minute'>='2018-12-14
+ 00:00:00' AND departure_time+t3.travel_stay_time*interval '1 minute'<='2018-12-14
+ 23:59:59') ORDER BY carriages.id_train;
+  id_train | travel_stay_time | travel_time 
+----------+------------------+-------------
+      618 |                0 |         576
+(1 row)
