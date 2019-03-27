@@ -67,7 +67,6 @@ public class HttpServer {
 		public void run() {
 			try (Socket socketLocal = socket) {
 				String url = getUrl();
-//				logger.info("url=" + url);
 				url = URLDecoder.decode(url, "UTF8");
 				logger.info("url=" + url);
 				if (url.equals("favicon.ico")) {
