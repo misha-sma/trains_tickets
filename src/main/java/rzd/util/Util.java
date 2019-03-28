@@ -14,21 +14,30 @@ import org.slf4j.LoggerFactory;
 public class Util {
 	private static final Logger logger = LoggerFactory.getLogger(Util.class);
 
-  private Util() {
-  }
+	private Util() {
+	}
 
-  public static final Map<Integer, String> DAY_OF_WEEK_MAP = new HashMap<Integer, String>();
+	public static final Map<Integer, String> DAY_OF_WEEK_MAP = new HashMap<Integer, String>();
+	public static final Map<String, Integer> DAY_OF_WEEK_MAP_REVERSE = new HashMap<String, Integer>();
 
-  static {
-    DAY_OF_WEEK_MAP.put(1, "вс");
-    DAY_OF_WEEK_MAP.put(2, "пн");
-    DAY_OF_WEEK_MAP.put(3, "вт");
-    DAY_OF_WEEK_MAP.put(4, "ср");
-    DAY_OF_WEEK_MAP.put(5, "чт");
-    DAY_OF_WEEK_MAP.put(6, "пт");
-    DAY_OF_WEEK_MAP.put(7, "сб");
-  }
-  
+	static {
+		DAY_OF_WEEK_MAP.put(1, "вс");
+		DAY_OF_WEEK_MAP.put(2, "пн");
+		DAY_OF_WEEK_MAP.put(3, "вт");
+		DAY_OF_WEEK_MAP.put(4, "ср");
+		DAY_OF_WEEK_MAP.put(5, "чт");
+		DAY_OF_WEEK_MAP.put(6, "пт");
+		DAY_OF_WEEK_MAP.put(7, "сб");
+
+		DAY_OF_WEEK_MAP_REVERSE.put("вс", 1);
+		DAY_OF_WEEK_MAP_REVERSE.put("пн", 2);
+		DAY_OF_WEEK_MAP_REVERSE.put("вт", 3);
+		DAY_OF_WEEK_MAP_REVERSE.put("ср", 4);
+		DAY_OF_WEEK_MAP_REVERSE.put("чт", 5);
+		DAY_OF_WEEK_MAP_REVERSE.put("пт", 6);
+		DAY_OF_WEEK_MAP_REVERSE.put("сб", 7);
+	}
+
 //  public static String loadText(File file) {
 //      try {
 //          FileInputStream input = new FileInputStream(file);

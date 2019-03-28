@@ -8,6 +8,8 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URLDecoder;
+import java.util.Calendar;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -104,7 +106,7 @@ public class HttpServer {
 					String userInfo = HtmlRenderer.getUserInfo(userNew);
 					builder.append(userInfo);
 					builder.append("</body>\n</html>");
-					writeHomePageResponse(builder.toString());
+					writeHtmlResponse(builder.toString());
 				} else if (url.startsWith("?idSeat=")) {
 					// введение данных пассажира
 					Map<String, String> params = Util.parseParameters(url);
@@ -131,7 +133,7 @@ public class HttpServer {
 					passengerPage = passengerPage.replace("name=\"idSeat\" value=\"\">",
 							"name=\"idSeat\" value=\"" + idSeat + "\">");
 					builder.append(passengerPage);
-					writeHomePageResponse(builder.toString());
+					writeHtmlResponse(builder.toString());
 				} else if (url.startsWith("?date=")) {
 					// выбор места
 					Map<String, String> params = Util.parseParameters(url);
@@ -175,7 +177,7 @@ public class HttpServer {
 						builder.append(table);
 					}
 					builder.append(HOME_PAGE_END);
-					writeHomePageResponse(builder.toString());
+					writeHtmlResponse(builder.toString());
 				} else if (url.startsWith("?from=")) {
 					// выбор станций
 					Map<String, String> params = Util.parseParameters(url);
@@ -183,14 +185,9 @@ public class HttpServer {
 					String destinationStation = params.get("to").toLowerCase();
 					int idDepartureStation = StationDao.STATIONS_NAME_ID_MAP.get(departureStation);
 					int idDestinationStation = StationDao.STATIONS_NAME_ID_MAP.get(destinationStation);
-					String departureStationTrue = StationDao.STATIONS_ID_NAME_MAP.get(idDepartureStation);
-					String destinationStationTrue = StationDao.STATIONS_ID_NAME_MAP.get(idDestinationStation);
 					String date = params.get("date");
 					StringBuilder builder = new StringBuilder();
-					String header = HOME_PAGE_BEGIN.replace("placeholder=\"Откуда\"",
-							"value=\"" + departureStationTrue + "\"");
-					header = header.replace("placeholder=\"Куда\"", "value=\"" + destinationStationTrue + "\"");
-					header = header.replace("value=\"\"", "value=\"" + date + "\"");
+					String header = HtmlRenderer.getHeader(idDepartureStation, idDestinationStation, date);
 					builder.append(header);
 					builder.append("<table border=\"1\">\n");
 					builder.append(
@@ -201,18 +198,17 @@ public class HttpServer {
 					} else {
 						builder.append("<th></th>\n</tr>\n");
 					}
-					List<TrainTravelStayTimes> trains = null;
-					if (isAllDays) {
-						trains = TrainDao.getTrainsByStations(idDepartureStation, idDestinationStation);
-					} else {
-						trains = TrainDao.getTrainsByStationsAndDate(idDepartureStation, idDestinationStation, date);
+					List<TrainTravelStayTimes> trains = TrainDao.getTrainsByStations(idDepartureStation,
+							idDestinationStation);
+					if (!isAllDays) {
+						trains = filterTrains4OneDay(trains, date);
 					}
-
 					for (TrainTravelStayTimes trainTravelStayTimes : trains) {
-						int idTrain=trainTravelStayTimes.getIdTrain();
-						Train train=TrainDao.TRAINS_MAP.get(idTrain);
-						String depTime = Util.addMinutesToDate(train.getDepartureTime(), trainTravelStayTimes.getDepartureTravelStayTime());
-						String destTime = Util.addMinutesToDate(train.getDepartureTime(), trainTravelStayTimes.getDestinationTravelTime());
+						int idTrain = trainTravelStayTimes.getIdTrain();
+						Train train = TrainDao.TRAINS_MAP.get(idTrain);
+						String depTime = trainTravelStayTimes.getDepartureTime();
+						String destTime = Util.addMinutesToDate(train.getDepartureTime(),
+								trainTravelStayTimes.getDestinationTravelTime());
 						builder.append("<tr><td>").append(
 								idTrain + " " + train.getDepartureStation() + " - " + train.getDestinationStation());
 						if (train.getName() != null) {
@@ -237,20 +233,23 @@ public class HttpServer {
 									+ "<input type=\"hidden\" name=\"to\" value=\"" + idDestinationStation + "\">\n"
 									+ "<input type=\"submit\" name=\"selectSeatButton\" value=\"Выбрать место\">\n");
 						}
-						builder.append("</form>\n" + train.getDepartureDays() + "</td>\n</tr>\n");
+						String depDays = isAllDays
+								? getDepartureDaysTrue(train, trainTravelStayTimes.getDepartureTravelStayTime())
+								: "";
+						builder.append("</form>\n" + depDays + "</td>\n</tr>\n");
 					}
 					builder.append("</table>\n");
 					builder.append(HOME_PAGE_END);
-					writeHomePageResponse(builder.toString());
+					writeHtmlResponse(builder.toString());
 				} else {
-					writeHomePageResponse(HOME_PAGE);
+					writeHtmlResponse(HOME_PAGE);
 				}
 			} catch (Throwable t) {
 				logger.error(t.getMessage(), t);
 			}
 		}
 
-		private void writeHomePageResponse(String html) throws Throwable {
+		private void writeHtmlResponse(String html) throws IOException {
 			String response = "HTTP/1.1 200 OK\r\n" + "Server: misha-sma-Server/2012\r\n"
 					+ "Content-Type: text/html\r\n" + "Connection: close\r\n\r\n";
 			String result = response + html;
@@ -258,7 +257,7 @@ public class HttpServer {
 			os.flush();
 		}
 
-		private void writeFaviconResponse() throws Throwable {
+		private void writeFaviconResponse() throws IOException {
 			String response = "HTTP/1.1 200 OK\r\n" + "Server: misha-sma-Server/2012\r\n"
 					+ "Content-Type: image/vnd.microsoft.icon\r\n" + "Content-Length: " + FAVICON_BYTES.length + "\r\n"
 					+ "Connection: close\r\n\r\n";
@@ -267,7 +266,7 @@ public class HttpServer {
 			os.flush();
 		}
 
-		private String getUrl() throws Throwable {
+		private String getUrl() throws IOException {
 			BufferedReader br = new BufferedReader(new InputStreamReader(is));
 			String line;
 			while ((line = br.readLine()) != null && !line.trim().isEmpty()) {
@@ -294,5 +293,60 @@ public class HttpServer {
 		CarriageDao.loadCarriageCaches();
 		StationDao.loadStationsCaches();
 		TrainDao.loadTrainsCache();
+	}
+
+	private static List<TrainTravelStayTimes> filterTrains4OneDay(List<TrainTravelStayTimes> trains, String date) {
+		List<TrainTravelStayTimes> result = new LinkedList<TrainTravelStayTimes>();
+		String[] parts = date.split("-");
+		int year = Integer.parseInt(parts[0]);
+		int month = Integer.parseInt(parts[1]) - 1;
+		int day = Integer.parseInt(parts[2]);
+		for (TrainTravelStayTimes trainTravelStayTimes : trains) {
+			int idTrain = trainTravelStayTimes.getIdTrain();
+			Train train = TrainDao.TRAINS_MAP.get(idTrain);
+			String depDays = train.getDepartureDays();
+			if (depDays.equals("ежд")) {
+				result.add(trainTravelStayTimes);
+				continue;
+			}
+			int departureTravelStayTime = trainTravelStayTimes.getDepartureTravelStayTime();
+			Calendar calendarDep = Calendar.getInstance();
+			calendarDep.setTime(train.getDepartureTime());
+			calendarDep.add(Calendar.MINUTE, departureTravelStayTime);
+			calendarDep.set(year, month, day);
+			calendarDep.roll(Calendar.MINUTE, departureTravelStayTime);
+			int depDayTrainWeekInt = calendarDep.get(Calendar.DAY_OF_WEEK);
+			String depDayTrainWeek = Util.DAY_OF_WEEK_MAP.get(depDayTrainWeekInt);
+			if (depDays.contains(depDayTrainWeek)) {
+				result.add(trainTravelStayTimes);
+			}
+		}
+		return result;
+	}
+
+	private static String getDepartureDaysTrue(Train train, int departureTravelStayTime) {
+		String depDays = train.getDepartureDays();
+		if (depDays.equals("ежд")) {
+			return depDays;
+		}
+		Calendar calendarDep = Calendar.getInstance();
+		calendarDep.setTime(train.getDepartureTime());
+		calendarDep.add(Calendar.MINUTE, departureTravelStayTime);
+		int deltaDays = calendarDep.get(Calendar.DAY_OF_MONTH) - 1;
+		StringBuilder builder = new StringBuilder();
+		String[] parts = depDays.split(",");
+		for (int i = 0; i < parts.length; ++i) {
+			String part = parts[i];
+			int dayOfWeekInt = Util.DAY_OF_WEEK_MAP_REVERSE.get(part);
+			dayOfWeekInt += deltaDays;
+			dayOfWeekInt = dayOfWeekInt % 7;
+			dayOfWeekInt = dayOfWeekInt == 0 ? 7 : dayOfWeekInt;
+			String dayOfWeekTrue = Util.DAY_OF_WEEK_MAP.get(dayOfWeekInt);
+			if (i > 0) {
+				builder.append(",");
+			}
+			builder.append(dayOfWeekTrue);
+		}
+		return builder.toString();
 	}
 }

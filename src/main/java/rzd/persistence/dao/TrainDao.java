@@ -4,9 +4,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -16,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import rzd.persistence.DBConnection;
 import rzd.persistence.entity.Train;
 import rzd.persistence.entity.TrainTravelStayTimes;
+import rzd.util.Util;
 
 public class TrainDao {
 	private static final Logger logger = LoggerFactory.getLogger(TrainDao.class);
@@ -23,14 +25,6 @@ public class TrainDao {
 	public static final String TRAINS_ALL_DAYS_SQL = "SELECT t1.id_train, t1.travel_time+t1.stay_time, t2.travel_time FROM trains_stations "
 			+ "AS t1 INNER JOIN trains_stations AS t2 ON t1.id_station=? AND t2.id_station=? AND t1.id_train=t2.id_train "
 			+ "AND t1.travel_time<t2.travel_time ORDER BY t1.id_train";
-
-	public static final String TRAINS_DATE_SQL = "SELECT DISTINCT carriages.id_train, t3.travel_stay_time, t3.travel_time FROM carriages "
-			+ "INNER JOIN (SELECT t1.id_train, t1.travel_time+t1.stay_time AS travel_stay_time, t2.travel_time "
-			+ "FROM trains_stations AS t1 INNER JOIN trains_stations AS t2 ON t1.id_station=? AND t2.id_station=? AND "
-			+ "t1.id_train=t2.id_train AND t1.travel_time<t2.travel_time) AS t3 ON "
-			+ "(carriages.id_train=t3.id_train AND departure_time+t3.travel_stay_time*interval '1 minute'>='?"
-			+ " 00:00:00' AND departure_time+t3.travel_stay_time*interval '1 minute'<='?"
-			+ " 23:59:59') ORDER BY carriages.id_train";
 
 	public static final int BATCH_SIZE = 1000;
 	public static final String TRAINS_SQL = "SELECT t1.*, trains_stations.id_station FROM "
@@ -145,7 +139,7 @@ public class TrainDao {
 
 	// на все дни
 	public static List<TrainTravelStayTimes> getTrainsByStations(int idDepartureStation, int idDestinationStation) {
-		List<TrainTravelStayTimes> result = new LinkedList<TrainTravelStayTimes>();
+		List<TrainTravelStayTimes> result = new ArrayList<TrainTravelStayTimes>();
 		try (Connection con = DBConnection.getDbConnection();
 				PreparedStatement ps = con.prepareStatement(TRAINS_ALL_DAYS_SQL)) {
 			ps.setInt(1, idDepartureStation);
@@ -155,7 +149,10 @@ public class TrainDao {
 				int idTrain = rs.getInt(1);
 				int departureTravelStayTime = rs.getInt(2);
 				int destinationTravelTime = rs.getInt(3);
-				result.add(new TrainTravelStayTimes(idTrain, departureTravelStayTime, destinationTravelTime));
+				String departureTime = Util.addMinutesToDate(TRAINS_MAP.get(idTrain).getDepartureTime(),
+						departureTravelStayTime);
+				result.add(new TrainTravelStayTimes(idTrain, departureTravelStayTime, destinationTravelTime,
+						departureTime));
 			}
 			rs.close();
 		} catch (ClassNotFoundException e) {
@@ -163,32 +160,7 @@ public class TrainDao {
 		} catch (SQLException e) {
 			logger.error(e.getMessage(), e);
 		}
-		return result;
-	}
-
-	// на заданный день
-	public static List<TrainTravelStayTimes> getTrainsByStationsAndDate(int idDepartureStation,
-			int idDestinationStation, String dateStr) {
-		List<TrainTravelStayTimes> result = new LinkedList<TrainTravelStayTimes>();
-		try (Connection con = DBConnection.getDbConnection();
-				PreparedStatement ps = con.prepareStatement(TRAINS_DATE_SQL)) {
-			ps.setInt(1, idDepartureStation);
-			ps.setInt(2, idDestinationStation);
-			ps.setString(3, dateStr);
-			ps.setString(4, dateStr);
-			ResultSet rs = ps.executeQuery();
-			while (rs.next()) {
-				int idTrain = rs.getInt(1);
-				int departureTravelStayTime = rs.getInt(2);
-				int destinationTravelTime = rs.getInt(3);
-				result.add(new TrainTravelStayTimes(idTrain, departureTravelStayTime, destinationTravelTime));
-			}
-			rs.close();
-		} catch (ClassNotFoundException e) {
-			logger.error(e.getMessage(), e);
-		} catch (SQLException e) {
-			logger.error(e.getMessage(), e);
-		}
+		Collections.sort(result);
 		return result;
 	}
 

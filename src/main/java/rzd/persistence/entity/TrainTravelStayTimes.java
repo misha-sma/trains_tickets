@@ -9,8 +9,14 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class TrainTravelStayTimes {
+public class TrainTravelStayTimes implements Comparable<TrainTravelStayTimes> {
 	private int idTrain;
 	private int departureTravelStayTime;
 	private int destinationTravelTime;
+	private String departureTime;
+
+	@Override
+	public int compareTo(TrainTravelStayTimes trainTST) {
+		return departureTime.compareTo(trainTST.departureTime);
+	}
 }
