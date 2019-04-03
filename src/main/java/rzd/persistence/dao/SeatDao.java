@@ -4,23 +4,25 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
-import rzd.MainClass;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import rzd.persistence.DBConnection;
 import rzd.persistence.entity.Carriage;
 import rzd.persistence.entity.SeatsSearchResult;
-import rzd.persistence.entity.User;
 import rzd.util.Util;
 
 public class SeatDao {
-public static final int SEATS_HASH_BASE=1000;
-	
+	private static final Logger logger = LoggerFactory.getLogger(SeatDao.class);
+
+	public static final int SEATS_HASH_BASE = 1000;
+	public static final String PREVIOUS_STATIONS_COUNT_SQL = "SELECT count(1) FROM trains_stations WHERE id_train=? AND travel_time<="
+			+ "(SELECT travel_time FROM trains_stations WHERE id_train=? AND id_station=?)";
+
 	public static void addOneCarriageSeats(Carriage carriage) {
 		for (int seatNumber = 1; seatNumber <= CarriageDao.SEATS_COUNT_MAP
 				.get(carriage.getIdCarriageType()); ++seatNumber) {
@@ -58,14 +60,8 @@ public static final int SEATS_HASH_BASE=1000;
 
 	private static int getPreviousStationsCount(int idTrain, int idStation) {
 		int count = 0;
-		Connection con = null;
-		PreparedStatement ps = null;
-		try {
-			con = DBConnection.getDbConnection();
-			con.setAutoCommit(false);
-			String sql = "SELECT count(1) FROM trains_stations WHERE id_train=? AND travel_time<="
-					+ "(SELECT travel_time FROM trains_stations WHERE id_train=? AND id_station=?)";
-			ps = con.prepareStatement(sql);
+		try (Connection con = DBConnection.getDbConnection();
+				PreparedStatement ps = con.prepareStatement(PREVIOUS_STATIONS_COUNT_SQL)) {
 			ps.setInt(1, idTrain);
 			ps.setInt(2, idTrain);
 			ps.setInt(3, idStation);
@@ -74,20 +70,10 @@ public static final int SEATS_HASH_BASE=1000;
 				count = rs.getInt(1);
 			}
 			rs.close();
-			con.commit();
 		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (ps != null)
-					ps.close();
-				if (con != null)
-					con.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			logger.error(e.getMessage(), e);
 		}
 		return count;
 	}
@@ -110,25 +96,12 @@ public static final int SEATS_HASH_BASE=1000;
 		int maxCarriageNumber = 0;
 		Map<Integer, Integer> carriageTypesMap = new HashMap<Integer, Integer>();
 		Map<Integer, Long> seatsMap = new HashMap<Integer, Long>();
-
 		String condition = getCondition(idTrain, idDepartureStation, idDestinationStation);
-		Connection con = null;
-		PreparedStatement ps = null;
-		try {
-			con = DBConnection.getDbConnection();
-			con.setAutoCommit(false);
-			String sql = "SELECT id_seat, seat_number, carriage_number, id_carriage_type FROM seats INNER JOIN carriages "
-					+ "ON seats.id_carriage=carriages.id_carriage WHERE id_train=? AND departure_time+"
-					+ "?*interval '1 minute'>='" + departureDate
-					+ " 00:00:00' AND departure_time+?*interval '1 minute'<='" + departureDate + " 23:59:59' AND "
-					+ condition;
-
-			// String sql = "SELECT * FROM seats INNER JOIN (SELECT * FROM carriages WHERE
-			// id_train=? AND departure_time+"+
-			// "?*interval '1 minute'>='"+departureDate+" 00:00:00' AND
-			// departure_time+?*interval '1 minute'<='"+departureDate+" 23:59:59') AS t1 "
-			// + "ON seats.id_carriage=t1.id_carriage WHERE " + condition;
-			ps = con.prepareStatement(sql);
+		String sql = "SELECT id_seat, seat_number, carriage_number, id_carriage_type FROM seats INNER JOIN carriages "
+				+ "ON seats.id_carriage=carriages.id_carriage WHERE id_train=? AND departure_time+"
+				+ "?*interval '1 minute'>='" + departureDate + " 00:00:00' AND departure_time+?*interval '1 minute'<='"
+				+ departureDate + " 23:59:59' AND " + condition;
+		try (Connection con = DBConnection.getDbConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
 			ps.setInt(1, idTrain);
 			ps.setInt(2, delay);
 			ps.setInt(3, delay);
@@ -145,20 +118,10 @@ public static final int SEATS_HASH_BASE=1000;
 				seatsMap.put(carriageNumber * SEATS_HASH_BASE + seatNumber, idSeat);
 			}
 			rs.close();
-			con.commit();
 		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (ps != null)
-					ps.close();
-				if (con != null)
-					con.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			logger.error(e.getMessage(), e);
 		}
 		return new SeatsSearchResult(maxCarriageNumber, carriageTypesMap, seatsMap);
 	}

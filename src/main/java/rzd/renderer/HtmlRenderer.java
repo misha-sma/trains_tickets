@@ -23,13 +23,10 @@ public class HtmlRenderer {
 
 	public static String getTrainHeader(int idTrain, String date, int delay, int idDestinationStation) {
 		StringBuilder builder = new StringBuilder();
-//		String departureStationTrain = TrainDao.getDepartureStation(idTrain);
-//		String destinationStationTrain = TrainDao.getDestinationStation(idTrain);
-//		Train train = TrainDao.getTrainById(idTrain);
-		Train train=TrainDao.TRAINS_MAP.get(idTrain);
+		Train train = TrainDao.TRAINS_MAP.get(idTrain);
 		String trainNameQuotes = train.getName() == null ? "" : "&laquo;" + train.getName() + "&raquo;";
-		builder.append("Поезд №" + idTrain + " " + train.getDepartureStation() + " - " + train.getDestinationStation() + " "
-				+ trainNameQuotes + "<br>\n");
+		builder.append("Поезд №" + idTrain + " " + train.getDepartureStation() + " - " + train.getDestinationStation()
+				+ " " + trainNameQuotes + "<br>\n");
 		String depTime = Util.addMinutesToDate(train.getDepartureTime(), delay);
 		builder.append("Отправление " + Util.convertDateToDots(date) + " " + Util.getDayOfWeek(date) + " в " + depTime
 				+ "<br>\n");

@@ -34,7 +34,6 @@ public class SeatsRenderer {
 
 	private static String renderDoubleDecker(int carriageNumber, int carriageType, Map<Integer, Long> seatsMap,
 			int idDepartureStation, int idDestinationStation) {
-		// int seatsCount = HttpServer.SEATS_COUNT_MAP.get(carriageType);
 		String carriageName = CarriageDao.CARRIAGE_NAMES_MAP.get(carriageType);
 		StringBuilder builder = new StringBuilder();
 		builder.append("<table border=\"0\">\n");
@@ -76,7 +75,6 @@ public class SeatsRenderer {
 
 	private static String renderSeating(int carriageNumber, int carriageType, Map<Integer, Long> seatsMap,
 			int idDepartureStation, int idDestinationStation) {
-		// int seatsCount = HttpServer.SEATS_COUNT_MAP.get(carriageType);
 		String carriageName = CarriageDao.CARRIAGE_NAMES_MAP.get(carriageType);
 		StringBuilder builder = new StringBuilder();
 		builder.append("<table border=\"0\">\n");
@@ -112,7 +110,6 @@ public class SeatsRenderer {
 
 	private static String renderCB(int carriageNumber, int carriageType, Map<Integer, Long> seatsMap,
 			int idDepartureStation, int idDestinationStation) {
-		// int seatsCount = HttpServer.SEATS_COUNT_MAP.get(carriageType);
 		String carriageName = CarriageDao.CARRIAGE_NAMES_MAP.get(carriageType);
 		StringBuilder builder = new StringBuilder();
 		builder.append("<table border=\"0\">\n");
@@ -130,7 +127,6 @@ public class SeatsRenderer {
 
 	private static String renderCoupe(int carriageNumber, int carriageType, Map<Integer, Long> seatsMap,
 			int idDepartureStation, int idDestinationStation) {
-		// int seatsCount = HttpServer.SEATS_COUNT_MAP.get(carriageType);
 		String carriageName = CarriageDao.CARRIAGE_NAMES_MAP.get(carriageType);
 		StringBuilder builder = new StringBuilder();
 		builder.append("<table border=\"0\">\n");
@@ -156,7 +152,6 @@ public class SeatsRenderer {
 
 	private static String renderEconom(int carriageNumber, int carriageType, Map<Integer, Long> seatsMap,
 			int idDepartureStation, int idDestinationStation) {
-		// int seatsCount = HttpServer.SEATS_COUNT_MAP.get(carriageType);
 		String carriageName = CarriageDao.CARRIAGE_NAMES_MAP.get(carriageType);
 		StringBuilder builder = new StringBuilder();
 		builder.append("<table border=\"0\">\n");

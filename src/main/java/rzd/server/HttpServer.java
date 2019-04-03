@@ -137,8 +137,6 @@ public class HttpServer {
 				} else if (url.startsWith("?date=")) {
 					// выбор места
 					Map<String, String> params = Util.parseParameters(url);
-					// String departureStation = params.get("from");
-					// String destinationStation = params.get("to");
 					int idDepartureStation = Integer.parseInt(params.get("from"));
 					int idDestinationStation = Integer.parseInt(params.get("to"));
 					int idTrain = Integer.parseInt(params.get("idTrain"));
@@ -147,24 +145,8 @@ public class HttpServer {
 					SeatsSearchResult ssr = SeatDao.getFreeSeats(idTrain, date, idDepartureStation,
 							idDestinationStation, delay);
 					StringBuilder builder = new StringBuilder();
-//                    String departureStation = StationDao.getStationNameById(idDepartureStation);
-//                    String destinationStation = StationDao.getStationNameById(idDestinationStation);
-//                    String header = HOME_PAGE_BEGIN.replace("placeholder=\"Откуда\"", "value=\"" + departureStation + "\"");
-//                    header = header.replace("placeholder=\"Куда\"", "value=\"" + destinationStation + "\"");
-//                    header = header.replace("value=\"\"", "value=\"" + date + "\"");
 					String header = HtmlRenderer.getHeader(idDepartureStation, idDestinationStation, date);
 					builder.append(header);
-//                    String departureStationTrain = TrainDao.getDepartureStation(idTrain);
-//                    String destinationStationTrain = TrainDao.getDestinationStation(idTrain);
-//                    Train train=TrainDao.getTrainById(idTrain);
-//                    String trainNameQuotes=train.getName()==null?"":"&laquo;"+train.getName()+"&raquo;";
-//                    builder.append("Поезд №"+idTrain+" "+departureStationTrain+ " - "+destinationStationTrain+" "+trainNameQuotes+"<br>");
-//                    String depTime=Util.addMinutesToDate(train.getDepartureTime(), delay);
-//                    builder.append("Отправление "+Util.convertDateToDots(date)+" "+Util.getDayOfWeek(date)+" в "+depTime+"<br>");
-//                    int delayDest = TrainDao.getTravelTime(idTrain, idDestinationStation);
-//                    String[] destDate=Util.calcDestDate(date, depTime, delayDest-delay);
-//                    builder.append("Прибытие " + destDate[0] +" "+destDate[2]+ " в " + destDate[1] + "<br>");
-//                    builder.append("Время в пути "+Util.formatMinutes(delayDest-delay)+"<br>");
 					String trainHeader = HtmlRenderer.getTrainHeader(idTrain, date, delay, idDestinationStation);
 					builder.append(trainHeader);
 					for (int carriageNumber = 1; carriageNumber <= ssr.getMaxCarriageNumber(); ++carriageNumber) {
