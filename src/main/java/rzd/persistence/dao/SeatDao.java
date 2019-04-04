@@ -24,8 +24,6 @@ public class SeatDao {
 			+ "(SELECT travel_time FROM trains_stations WHERE id_train=? AND id_station=?)";
 	public static final String CARRIAGE_BY_ID_SEAT_SQL = "SELECT seat_number, carriages.* FROM seats INNER JOIN carriages ON "
 			+ "seats.id_carriage=carriages.id_carriage AND id_seat=?";
-	public static final String ID_TRAIN_BY_ID_SEAT_SQL = "SELECT id_train FROM carriages WHERE id_carriage="
-			+ "(SELECT id_carriage FROM seats WHERE id_seat=?)";
 
 	public static void addOneCarriageSeats(Carriage carriage) {
 		for (int seatNumber = 1; seatNumber <= CarriageDao.SEATS_COUNT_MAP
