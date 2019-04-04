@@ -22,6 +22,8 @@ import rzd.persistence.dao.StationDao;
 import rzd.persistence.dao.TicketDao;
 import rzd.persistence.dao.TrainDao;
 import rzd.persistence.dao.UserDao;
+import rzd.persistence.entity.Carriage;
+import rzd.persistence.entity.CarriageSeatNumber;
 import rzd.persistence.entity.SeatsSearchResult;
 import rzd.persistence.entity.Train;
 import rzd.persistence.entity.TrainTravelStayTimes;
@@ -86,21 +88,23 @@ public class HttpServer {
 					long idSeat = Long.parseLong(params.get("idSeat"));
 					int idDepartureStation = Integer.parseInt(params.get("from"));
 					int idDestinationStation = Integer.parseInt(params.get("to"));
+					CarriageSeatNumber carriageSN = SeatDao.getCarriageSeatNumberByIdSeat(idSeat);
+					Carriage carriage = carriageSN.getCarriage();
 					TicketDao.createTicket(idSeat, idDepartureStation, idDestinationStation, userNew.getIdUser());
-					SeatDao.updateSeat(idSeat, idDepartureStation, idDestinationStation);
+					SeatDao.updateSeat(idSeat, idDepartureStation, idDestinationStation, carriage.getIdTrain());
+
 					StringBuilder builder = new StringBuilder();
 					builder.append("<html>\n");
 					builder.append("<meta charset=\"UTF-8\" />\n");
 					builder.append("<body>\n");
 					builder.append("Вы успешно купили билет на ");
-					int idTrain = SeatDao.getIdTrainByIdSeat(idSeat);
-					int delay = TrainDao.getTravelStayTime(idTrain, idDepartureStation);
-					String date = SeatDao.getDepartureDateByIdSeat(idSeat, idDepartureStation);
-					String trainHeader = HtmlRenderer.getTrainHeader4Ticket(idTrain, date, delay, idDepartureStation,
-							idDestinationStation);
+					int delay = TrainDao.getTravelStayTime(carriage.getIdTrain(), idDepartureStation);
+					String departureDateStr = Util.addMinutesToDateDate(carriage.getDepartureTime(), delay);
+					String trainHeader = HtmlRenderer.getTrainHeader4Ticket(carriage.getIdTrain(), departureDateStr,
+							delay, idDepartureStation, idDestinationStation);
 					builder.append(trainHeader);
 					builder.append("<br>\n");
-					String seatInfo = HtmlRenderer.getSeatInfo(idSeat);
+					String seatInfo = HtmlRenderer.getSeatInfo(carriageSN);
 					builder.append(seatInfo);
 					builder.append("<br>\n");
 					String userInfo = HtmlRenderer.getUserInfo(userNew);
@@ -113,16 +117,19 @@ public class HttpServer {
 					long idSeat = Long.parseLong(params.get("idSeat"));
 					int idDepartureStation = Integer.parseInt(params.get("from"));
 					int idDestinationStation = Integer.parseInt(params.get("to"));
-					String date = SeatDao.getDepartureDateByIdSeat(idSeat, idDepartureStation);
+					CarriageSeatNumber carriageSN = SeatDao.getCarriageSeatNumberByIdSeat(idSeat);
+					Carriage carriage = carriageSN.getCarriage();
+					int delay = TrainDao.getTravelStayTime(carriage.getIdTrain(), idDepartureStation);
+					String departureDateStr = Util.addMinutesToDateDate(carriage.getDepartureTime(), delay);
+
 					StringBuilder builder = new StringBuilder();
-					String header = HtmlRenderer.getHeader(idDepartureStation, idDestinationStation, date);
+					String header = HtmlRenderer.getHeader(idDepartureStation, idDestinationStation, departureDateStr);
 					builder.append(header);
-					int idTrain = SeatDao.getIdTrainByIdSeat(idSeat);
-					int delay = TrainDao.getTravelStayTime(idTrain, idDepartureStation);
-					String trainHeader = HtmlRenderer.getTrainHeader(idTrain, date, delay, idDestinationStation);
+					String trainHeader = HtmlRenderer.getTrainHeader(carriage.getIdTrain(), departureDateStr, delay,
+							idDestinationStation);
 					builder.append(trainHeader);
 					builder.append("\n<br>\n");
-					String seatInfo = HtmlRenderer.getSeatInfo(idSeat);
+					String seatInfo = HtmlRenderer.getSeatInfo(carriageSN);
 					builder.append(seatInfo);
 					builder.append("<br>\n");
 

@@ -22,16 +22,16 @@ import rzd.util.Util;
 public class TrainDao {
 	private static final Logger logger = LoggerFactory.getLogger(TrainDao.class);
 
-	public static final String TRAINS_ALL_DAYS_SQL = "SELECT t1.id_train, t1.travel_time+t1.stay_time, t2.travel_time FROM trains_stations "
-			+ "AS t1 INNER JOIN trains_stations AS t2 ON t1.id_station=? AND t2.id_station=? AND t1.id_train=t2.id_train "
-			+ "AND t1.travel_time<t2.travel_time ORDER BY t1.id_train";
-
 	public static final int BATCH_SIZE = 1000;
 	public static final String TRAINS_SQL = "SELECT t1.*, trains_stations.id_station FROM "
 			+ "(SELECT trains.*, trains_stations.id_station FROM trains INNER JOIN trains_stations ON trains.id_train=trains_stations.id_train "
 			+ "AND travel_time=0) AS t1 INNER JOIN trains_stations ON t1.id_train=trains_stations.id_train AND stay_time=-1 "
 			+ "ORDER BY t1.id_train LIMIT ? OFFSET ?";
 	public static final Map<Integer, Train> TRAINS_MAP = new HashMap<Integer, Train>();
+
+	public static final String TRAINS_ALL_DAYS_SQL = "SELECT t1.id_train, t1.travel_time+t1.stay_time, t2.travel_time FROM trains_stations "
+			+ "AS t1 INNER JOIN trains_stations AS t2 ON t1.id_station=? AND t2.id_station=? AND t1.id_train=t2.id_train "
+			+ "AND t1.travel_time<t2.travel_time ORDER BY t1.id_train";
 
 	public static final String TRAVEL_STAY_TIME_SQL = "SELECT travel_time+stay_time FROM trains_stations WHERE id_train=? AND id_station=?";
 	public static final String TRAVEL_TIME_SQL = "SELECT travel_time FROM trains_stations WHERE id_train=? AND id_station=?";

@@ -4,6 +4,10 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,6 +18,11 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class User {
+	private static final Logger logger = LoggerFactory.getLogger(User.class);
+
+	public static final String DATE_PATTERN = "yyyy-MM-dd";
+	public static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat(DATE_PATTERN);
+
 	private long idUser;
 	private String surname;
 	private String name;
@@ -30,12 +39,10 @@ public class User {
 		name = params.get("name");
 		patronymic = params.get("patronymic");
 		String birthdayStr = params.get("birthday");
-		String pattern = "yyyy-MM-dd";
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
 		try {
-			birthday = simpleDateFormat.parse(birthdayStr);
+			birthday = SIMPLE_DATE_FORMAT.parse(birthdayStr);
 		} catch (ParseException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		}
 		String phoneStr = params.get("phone").replace("+", "");
 		phone = Long.parseLong(phoneStr);

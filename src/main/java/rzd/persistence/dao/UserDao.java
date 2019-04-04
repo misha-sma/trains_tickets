@@ -5,58 +5,48 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import rzd.persistence.DBConnection;
 import rzd.persistence.entity.User;
 
 public class UserDao {
+	private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
+
+	public static final String USER_BY_ID_SQL = "SELECT * FROM users WHERE id_user=?";
+	public static final String ADD_USER_SQL = "INSERT INTO users (id_user, surname, name, patronymic, birthday, phone, email) VALUES (?, ?, ?, ?, ?, ?, ?)";
+	public static final String UPDATE_USER_SQL = "UPDATE users SET surname=?, name=?, patronymic=?, birthday=?, phone=?, email=? WHERE id_user=?";
+
 	public static User getUserById(long idUser) {
 		User user = null;
-		Connection con = null;
-		PreparedStatement ps = null;
-		try {
-			con = DBConnection.getDbConnection();
-			con.setAutoCommit(false);
-			String sql = "SELECT * FROM users WHERE id_user=?";
-			ps = con.prepareStatement(sql);
+		try (Connection con = DBConnection.getDbConnection();
+				PreparedStatement ps = con.prepareStatement(USER_BY_ID_SQL)) {
 			ps.setLong(1, idUser);
 			ResultSet rs = ps.executeQuery();
 			if (rs.next()) {
 				String surname = rs.getString("surname");
 				String name = rs.getString("name");
 				String patronymic = rs.getString("patronymic");
-				Date birthday = new Date(rs.getTimestamp("birthday").getTime());
+				Date birthday = rs.getTimestamp("birthday");
 				long phone = rs.getLong("phone");
 				String email = rs.getString("email");
-				Date registrationDate = new Date(rs.getTimestamp("registration_date").getTime());
+				Date registrationDate = rs.getTimestamp("registration_date");
 				user = new User(idUser, surname, name, patronymic, birthday, phone, email, registrationDate);
 			}
 			rs.close();
-			con.commit();
 		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (ps != null)
-					ps.close();
-				if (con != null)
-					con.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			logger.error(e.getMessage(), e);
 		}
 		return user;
 	}
 
 	public static void addUser(User user) {
-		Connection con = null;
-		PreparedStatement ps = null;
-		try {
-			con = DBConnection.getDbConnection();
-			con.setAutoCommit(false);
-			String sql = "INSERT INTO users (id_user, surname, name, patronymic, birthday, phone, email) VALUES (?, ?, ?, ?, ?, ?, ?)";
-			ps = con.prepareStatement(sql);
+		try (Connection con = DBConnection.getDbConnection();
+				PreparedStatement ps = con.prepareStatement(ADD_USER_SQL)) {
 			ps.setLong(1, user.getIdUser());
 			ps.setString(2, user.getSurname());
 			ps.setString(3, user.getName());
@@ -65,65 +55,16 @@ public class UserDao {
 			ps.setLong(6, user.getPhone());
 			ps.setString(7, user.getEmail());
 			ps.execute();
-			con.commit();
 		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (ps != null)
-					ps.close();
-				if (con != null)
-					con.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
-	public static void addUser(long idUser, String surname, String name, String patronymic, Date birthday, long phone,
-			String email) {
-		Connection con = null;
-		PreparedStatement ps = null;
-		try {
-			con = DBConnection.getDbConnection();
-			con.setAutoCommit(false);
-			String sql = "INSERT INTO users (id_user, surname, name, patronymic, birthday, phone, email) VALUES (?, ?, ?, ?, ?, ?, ?)";
-			ps = con.prepareStatement(sql);
-			ps.setLong(1, idUser);
-			ps.setString(2, surname);
-			ps.setString(3, name);
-			ps.setString(4, patronymic);
-			ps.setDate(5, new java.sql.Date(birthday.getTime()));
-			ps.setLong(6, phone);
-			ps.setString(7, email);
-			ps.execute();
-			con.commit();
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (ps != null)
-					ps.close();
-				if (con != null)
-					con.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			logger.error(e.getMessage(), e);
 		}
 	}
 
 	public static void updateUser(User user) {
-		Connection con = null;
-		PreparedStatement ps = null;
-		try {
-			con = DBConnection.getDbConnection();
-			con.setAutoCommit(false);
-			String sql = "UPDATE users SET surname=?, name=?, patronymic=?, birthday=?, phone=?, email=? WHERE id_user=?";
-			ps = con.prepareStatement(sql);
+		try (Connection con = DBConnection.getDbConnection();
+				PreparedStatement ps = con.prepareStatement(UPDATE_USER_SQL)) {
 			ps.setString(1, user.getSurname());
 			ps.setString(2, user.getName());
 			ps.setString(3, user.getPatronymic());
@@ -132,20 +73,10 @@ public class UserDao {
 			ps.setString(6, user.getEmail());
 			ps.setLong(7, user.getIdUser());
 			ps.execute();
-			con.commit();
 		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (ps != null)
-					ps.close();
-				if (con != null)
-					con.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			logger.error(e.getMessage(), e);
 		}
 	}
 

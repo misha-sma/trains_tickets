@@ -1,10 +1,10 @@
 package rzd.renderer;
 
 import rzd.persistence.dao.CarriageDao;
-import rzd.persistence.dao.SeatDao;
 import rzd.persistence.dao.StationDao;
 import rzd.persistence.dao.TrainDao;
 import rzd.persistence.entity.Carriage;
+import rzd.persistence.entity.CarriageSeatNumber;
 import rzd.persistence.entity.Train;
 import rzd.persistence.entity.User;
 import rzd.server.HttpServer;
@@ -42,13 +42,10 @@ public class HtmlRenderer {
 		StringBuilder builder = new StringBuilder();
 		String departureStation = StationDao.STATIONS_ID_NAME_MAP.get(idDepartureStation);
 		String destinationStation = StationDao.STATIONS_ID_NAME_MAP.get(idDestinationStation);
-//		String departureStationTrain = TrainDao.getDepartureStation(idTrain);
-//		String destinationStationTrain = TrainDao.getDestinationStation(idTrain);
-//		Train train = TrainDao.getTrainById(idTrain);
-		Train train=TrainDao.TRAINS_MAP.get(idTrain);
+		Train train = TrainDao.TRAINS_MAP.get(idTrain);
 		String trainNameQuotes = train.getName() == null ? "" : "&laquo;" + train.getName() + "&raquo;";
-		builder.append("Поезд №" + idTrain + " " + train.getDepartureStation() + " - " + train.getDestinationStation() + " "
-				+ trainNameQuotes + "<br>\n");
+		builder.append("Поезд №" + idTrain + " " + train.getDepartureStation() + " - " + train.getDestinationStation()
+				+ " " + trainNameQuotes + "<br>\n");
 		String depTime = Util.addMinutesToDate(train.getDepartureTime(), delay);
 		builder.append("Отправление " + Util.convertDateToDots(date) + " " + Util.getDayOfWeek(date) + " в " + depTime
 				+ " от станции " + departureStation + "<br>\n");
@@ -60,10 +57,10 @@ public class HtmlRenderer {
 		return builder.toString();
 	}
 
-	public static String getSeatInfo(long idSeat) {
+	public static String getSeatInfo(CarriageSeatNumber carriageSN) {
 		StringBuilder builder = new StringBuilder();
-		int seatNumber = SeatDao.getSeatNumberByIdSeat(idSeat);
-		Carriage carriage = CarriageDao.getCarriageByIdSeat(idSeat);
+		Carriage carriage = carriageSN.getCarriage();
+		int seatNumber = carriageSN.getSeatNumber();
 		builder.append("Вагон №" + carriage.getCarriageNumber() + " "
 				+ CarriageDao.CARRIAGE_NAMES_MAP.get(carriage.getIdCarriageType()) + "<br>\n");
 		builder.append(
