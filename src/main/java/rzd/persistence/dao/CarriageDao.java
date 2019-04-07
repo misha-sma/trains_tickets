@@ -31,7 +31,7 @@ public class CarriageDao {
 		try {
 			con = DBConnection.getDbConnection();
 			con.setAutoCommit(false);
-			String sql = "SELECT * from carriages ORDER BY id_carriage";
+			String sql = "SELECT * from carriages WHERE id_train=701 ORDER BY id_carriage";
 			ps = con.prepareStatement(sql);
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {

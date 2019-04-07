@@ -6,6 +6,7 @@ import java.util.Map;
 
 import rzd.persistence.dao.CarriageDao;
 import rzd.persistence.dao.SeatDao;
+import rzd.persistence.dao.StationDao;
 import rzd.persistence.dao.TrainDao;
 import rzd.persistence.entity.Carriage;
 
@@ -13,10 +14,13 @@ public class MainClass {
 	//public static Map<Integer, Integer> SEATS_COUNT_MAP = CarriageDao.getSeatsCountMap();
 
 	public static void main(String[] args) {
+		CarriageDao.loadCarriageCaches();
+		StationDao.loadStationsCaches();
+		TrainDao.loadTrainsCache();
 		Date ddd = new Date(System.currentTimeMillis());
 		List<Carriage> carriages = CarriageDao.getCarriages();
 		for (Carriage carriage : carriages) {
-			// SeatDao.addOneCarriageSeats(carriage);
+//			 SeatDao.addOneCarriageSeats(carriage);
 		}
 //		List<Integer> idTrains = TrainDao.getTrainsByStations(1, 7);
 //		System.out.println("idTrains=" + idTrains);

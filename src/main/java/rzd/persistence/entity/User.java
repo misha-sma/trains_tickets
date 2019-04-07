@@ -35,9 +35,9 @@ public class User {
 	public User(Map<String, String> params) {
 		String passportStr = params.get("passport");
 		idUser = Long.parseLong(passportStr);
-		surname = params.get("surname");
-		name = params.get("name");
-		patronymic = params.get("patronymic");
+		surname = firstUp(params.get("surname"));
+		name = firstUp(params.get("name"));
+		patronymic = firstUp(params.get("patronymic"));
 		String birthdayStr = params.get("birthday");
 		try {
 			birthday = SIMPLE_DATE_FORMAT.parse(birthdayStr);
@@ -47,6 +47,13 @@ public class User {
 		String phoneStr = params.get("phone").replace("+", "");
 		phone = Long.parseLong(phoneStr);
 		email = params.get("email");
+	}
+
+	private String firstUp(String str) {
+		if (str == null || str.isEmpty()) {
+			return str;
+		}
+		return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase();
 	}
 
 	public boolean isMatching(User user) {

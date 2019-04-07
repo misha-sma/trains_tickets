@@ -303,7 +303,7 @@ public class HttpServer {
 			calendarDep.setTime(train.getDepartureTime());
 			calendarDep.add(Calendar.MINUTE, departureTravelStayTime);
 			calendarDep.set(year, month, day);
-			calendarDep.roll(Calendar.MINUTE, departureTravelStayTime);
+			calendarDep.add(Calendar.MINUTE, -departureTravelStayTime);
 			int depDayTrainWeekInt = calendarDep.get(Calendar.DAY_OF_WEEK);
 			String depDayTrainWeek = Util.DAY_OF_WEEK_MAP.get(depDayTrainWeekInt);
 			if (depDays.contains(depDayTrainWeek)) {
