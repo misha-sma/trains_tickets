@@ -30,6 +30,7 @@ import rzd.persistence.entity.TrainTravelStayTimes;
 import rzd.persistence.entity.User;
 import rzd.renderer.HtmlRenderer;
 import rzd.renderer.SeatsRenderer;
+import rzd.util.DateUtil;
 import rzd.util.Util;
 
 public class HttpServer {
@@ -99,7 +100,7 @@ public class HttpServer {
 					builder.append("<body>\n");
 					builder.append("Вы успешно купили билет на ");
 					int delay = TrainDao.getTravelStayTime(carriage.getIdTrain(), idDepartureStation);
-					String departureDateStr = Util.addMinutesToDateDate(carriage.getDepartureTime(), delay);
+					String departureDateStr = DateUtil.addMinutesToDateDate(carriage.getDepartureTime(), delay);
 					String trainHeader = HtmlRenderer.getTrainHeader4Ticket(carriage.getIdTrain(), departureDateStr,
 							delay, idDepartureStation, idDestinationStation);
 					builder.append(trainHeader);
@@ -120,7 +121,7 @@ public class HttpServer {
 					CarriageSeatNumber carriageSN = SeatDao.getCarriageSeatNumberByIdSeat(idSeat);
 					Carriage carriage = carriageSN.getCarriage();
 					int delay = TrainDao.getTravelStayTime(carriage.getIdTrain(), idDepartureStation);
-					String departureDateStr = Util.addMinutesToDateDate(carriage.getDepartureTime(), delay);
+					String departureDateStr = DateUtil.addMinutesToDateDate(carriage.getDepartureTime(), delay);
 
 					StringBuilder builder = new StringBuilder();
 					String header = HtmlRenderer.getHeader(idDepartureStation, idDestinationStation, departureDateStr);
@@ -196,7 +197,7 @@ public class HttpServer {
 						int idTrain = trainTravelStayTimes.getIdTrain();
 						Train train = TrainDao.TRAINS_MAP.get(idTrain);
 						String depTime = trainTravelStayTimes.getDepartureTime();
-						String destTime = Util.addMinutesToDate(train.getDepartureTime(),
+						String destTime = DateUtil.addMinutesToDate(train.getDepartureTime(),
 								trainTravelStayTimes.getDestinationTravelTime());
 						builder.append("<tr><td>").append(
 								idTrain + " " + train.getDepartureStation() + " - " + train.getDestinationStation());
@@ -204,7 +205,7 @@ public class HttpServer {
 							builder.append("<br>" + "&laquo;" + train.getName() + "&raquo;");
 						}
 						builder.append("</td>\n<td>" + depTime + "</td>\n<td>"
-								+ Util.formatMinutes(trainTravelStayTimes.getDestinationTravelTime()
+								+ DateUtil.formatMinutes(trainTravelStayTimes.getDestinationTravelTime()
 										- trainTravelStayTimes.getDepartureTravelStayTime())
 								+ "</td>\n<td>" + destTime + "</td>\n");
 						if (isAllDays) {
@@ -305,7 +306,7 @@ public class HttpServer {
 			calendarDep.set(year, month, day);
 			calendarDep.add(Calendar.MINUTE, -departureTravelStayTime);
 			int depDayTrainWeekInt = calendarDep.get(Calendar.DAY_OF_WEEK);
-			String depDayTrainWeek = Util.DAY_OF_WEEK_MAP.get(depDayTrainWeekInt);
+			String depDayTrainWeek = DateUtil.DAY_OF_WEEK_MAP.get(depDayTrainWeekInt);
 			if (depDays.contains(depDayTrainWeek)) {
 				result.add(trainTravelStayTimes);
 			}
@@ -326,11 +327,11 @@ public class HttpServer {
 		String[] parts = depDays.split(",");
 		for (int i = 0; i < parts.length; ++i) {
 			String part = parts[i];
-			int dayOfWeekInt = Util.DAY_OF_WEEK_MAP_REVERSE.get(part);
+			int dayOfWeekInt = DateUtil.DAY_OF_WEEK_MAP_REVERSE.get(part);
 			dayOfWeekInt += deltaDays;
 			dayOfWeekInt = dayOfWeekInt % 7;
 			dayOfWeekInt = dayOfWeekInt == 0 ? 7 : dayOfWeekInt;
-			String dayOfWeekTrue = Util.DAY_OF_WEEK_MAP.get(dayOfWeekInt);
+			String dayOfWeekTrue = DateUtil.DAY_OF_WEEK_MAP.get(dayOfWeekInt);
 			if (i > 0) {
 				builder.append(",");
 			}

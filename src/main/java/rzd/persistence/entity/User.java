@@ -1,28 +1,19 @@
 package rzd.persistence.entity;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import rzd.util.DateUtil;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class User {
-	private static final Logger logger = LoggerFactory.getLogger(User.class);
-
-	public static final String DATE_PATTERN = "yyyy-MM-dd";
-	public static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat(DATE_PATTERN);
-
 	private long idUser;
 	private String surname;
 	private String name;
@@ -39,11 +30,7 @@ public class User {
 		name = firstUp(params.get("name"));
 		patronymic = firstUp(params.get("patronymic"));
 		String birthdayStr = params.get("birthday");
-		try {
-			birthday = SIMPLE_DATE_FORMAT.parse(birthdayStr);
-		} catch (ParseException e) {
-			logger.error(e.getMessage(), e);
-		}
+		birthday = DateUtil.string2Date(birthdayStr);
 		String phoneStr = params.get("phone").replace("+", "");
 		phone = Long.parseLong(phoneStr);
 		email = params.get("email");

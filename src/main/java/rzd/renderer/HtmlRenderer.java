@@ -8,6 +8,7 @@ import rzd.persistence.entity.CarriageSeatNumber;
 import rzd.persistence.entity.Train;
 import rzd.persistence.entity.User;
 import rzd.server.HttpServer;
+import rzd.util.DateUtil;
 import rzd.util.Util;
 
 public class HtmlRenderer {
@@ -27,13 +28,12 @@ public class HtmlRenderer {
 		String trainNameQuotes = train.getName() == null ? "" : "&laquo;" + train.getName() + "&raquo;";
 		builder.append("Поезд №" + idTrain + " " + train.getDepartureStation() + " - " + train.getDestinationStation()
 				+ " " + trainNameQuotes + "<br>\n");
-		String depTime = Util.addMinutesToDate(train.getDepartureTime(), delay);
-		builder.append("Отправление " + Util.convertDateToDots(date) + " " + Util.getDayOfWeek(date) + " в " + depTime
-				+ "<br>\n");
+		String depTime = DateUtil.addMinutesToDate(train.getDepartureTime(), delay);
+		builder.append("Отправление " + DateUtil.convertDateToDots(date) + " " + DateUtil.getDayOfWeek(date) + " в "
+				+ depTime + "<br>\n");
 		int delayDest = TrainDao.getTravelTime(idTrain, idDestinationStation);
-		String[] destDate = Util.calcDestDate(date, depTime, delayDest - delay);
-		builder.append("Прибытие " + destDate[0] + " " + destDate[2] + " в " + destDate[1] + "<br>\n");
-		builder.append("Время в пути " + Util.formatMinutes(delayDest - delay) + "<br>\n");
+		builder.append("Прибытие " + DateUtil.calcDestDate(date + " " + depTime, delayDest - delay) + "<br>\n");
+		builder.append("Время в пути " + DateUtil.formatMinutes(delayDest - delay) + "<br>\n");
 		return builder.toString();
 	}
 
@@ -46,14 +46,13 @@ public class HtmlRenderer {
 		String trainNameQuotes = train.getName() == null ? "" : "&laquo;" + train.getName() + "&raquo;";
 		builder.append("Поезд №" + idTrain + " " + train.getDepartureStation() + " - " + train.getDestinationStation()
 				+ " " + trainNameQuotes + "<br>\n");
-		String depTime = Util.addMinutesToDate(train.getDepartureTime(), delay);
-		builder.append("Отправление " + Util.convertDateToDots(date) + " " + Util.getDayOfWeek(date) + " в " + depTime
-				+ " от станции " + departureStation + "<br>\n");
+		String depTime = DateUtil.addMinutesToDate(train.getDepartureTime(), delay);
+		builder.append("Отправление " + DateUtil.convertDateToDots(date) + " " + DateUtil.getDayOfWeek(date) + " в "
+				+ depTime + " от станции " + departureStation + "<br>\n");
 		int delayDest = TrainDao.getTravelTime(idTrain, idDestinationStation);
-		String[] destDate = Util.calcDestDate(date, depTime, delayDest - delay);
-		builder.append("Прибытие " + destDate[0] + " " + destDate[2] + " в " + destDate[1] + " на станцию "
+		builder.append("Прибытие " + DateUtil.calcDestDate(date + " " + depTime, delayDest - delay) + " на станцию "
 				+ destinationStation + "<br>\n");
-		builder.append("Время в пути " + Util.formatMinutes(delayDest - delay) + "<br>\n");
+		builder.append("Время в пути " + DateUtil.formatMinutes(delayDest - delay) + "<br>\n");
 		return builder.toString();
 	}
 
@@ -72,7 +71,7 @@ public class HtmlRenderer {
 		StringBuilder builder = new StringBuilder();
 		builder.append("Данные пассажира<br>\n");
 		builder.append(user.getSurname() + " " + user.getName() + " " + user.getPatronymic() + "<br>\n");
-		builder.append("Дата рождения " + Util.addMinutesToDateFull(user.getBirthday(), 0)[0] + "<br>\n");
+		builder.append("Дата рождения " + DateUtil.date2StringDots(user.getBirthday()) + "<br>\n");
 		builder.append("Паспорт " + user.getIdUser() + "<br>\n");
 		builder.append("Email " + user.getEmail() + "<br>\n");
 		builder.append("Телефон +" + user.getPhone() + "<br>\n");

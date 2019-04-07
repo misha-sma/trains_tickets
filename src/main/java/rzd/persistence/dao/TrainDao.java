@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 import rzd.persistence.DBConnection;
 import rzd.persistence.entity.Train;
 import rzd.persistence.entity.TrainTravelStayTimes;
-import rzd.util.Util;
+import rzd.util.DateUtil;
 
 public class TrainDao {
 	private static final Logger logger = LoggerFactory.getLogger(TrainDao.class);
@@ -121,7 +121,7 @@ public class TrainDao {
 				int idTrain = rs.getInt(1);
 				int departureTravelStayTime = rs.getInt(2);
 				int destinationTravelTime = rs.getInt(3);
-				String departureTime = Util.addMinutesToDate(TRAINS_MAP.get(idTrain).getDepartureTime(),
+				String departureTime = DateUtil.addMinutesToDate(TRAINS_MAP.get(idTrain).getDepartureTime(),
 						departureTravelStayTime);
 				result.add(new TrainTravelStayTimes(idTrain, departureTravelStayTime, destinationTravelTime,
 						departureTime));
