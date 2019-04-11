@@ -9,6 +9,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URLDecoder;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -287,10 +288,6 @@ public class HttpServer {
 
 	private static List<TrainTravelStayTimes> filterTrains4OneDay(List<TrainTravelStayTimes> trains, String date) {
 		List<TrainTravelStayTimes> result = new LinkedList<TrainTravelStayTimes>();
-		String[] parts = date.split("-");
-		int year = Integer.parseInt(parts[0]);
-		int month = Integer.parseInt(parts[1]) - 1;
-		int day = Integer.parseInt(parts[2]);
 		for (TrainTravelStayTimes trainTravelStayTimes : trains) {
 			int idTrain = trainTravelStayTimes.getIdTrain();
 			Train train = TrainDao.TRAINS_MAP.get(idTrain);
@@ -299,12 +296,10 @@ public class HttpServer {
 				result.add(trainTravelStayTimes);
 				continue;
 			}
-			int departureTravelStayTime = trainTravelStayTimes.getDepartureTravelStayTime();
+			Date d = DateUtil.string2DateTime(date + " " + trainTravelStayTimes.getDepartureTime());
 			Calendar calendarDep = Calendar.getInstance();
-			calendarDep.setTime(train.getDepartureTime());
-			calendarDep.add(Calendar.MINUTE, departureTravelStayTime);
-			calendarDep.set(year, month, day);
-			calendarDep.add(Calendar.MINUTE, -departureTravelStayTime);
+			calendarDep.setTime(d);
+			calendarDep.add(Calendar.MINUTE, -trainTravelStayTimes.getDepartureTravelStayTime());
 			int depDayTrainWeekInt = calendarDep.get(Calendar.DAY_OF_WEEK);
 			String depDayTrainWeek = DateUtil.DAY_OF_WEEK_MAP.get(depDayTrainWeekInt);
 			if (depDays.contains(depDayTrainWeek)) {
@@ -323,6 +318,9 @@ public class HttpServer {
 		calendarDep.setTime(train.getDepartureTime());
 		calendarDep.add(Calendar.MINUTE, departureTravelStayTime);
 		int deltaDays = calendarDep.get(Calendar.DAY_OF_MONTH) - 1;
+		if (deltaDays == 0) {
+			return depDays;
+		}
 		StringBuilder builder = new StringBuilder();
 		String[] parts = depDays.split(",");
 		for (int i = 0; i < parts.length; ++i) {
