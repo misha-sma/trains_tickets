@@ -18,10 +18,10 @@ public class MainClass {
 		StationDao.loadStationsCaches();
 		TrainDao.loadTrainsCache();
 		Date ddd = new Date(System.currentTimeMillis());
-		List<Carriage> carriages = CarriageDao.getCarriages();
-		for (Carriage carriage : carriages) {
+//		List<Carriage> carriages = CarriageDao.getCarriages();
+//		for (Carriage carriage : carriages) {
 //			 SeatDao.addOneCarriageSeats(carriage);
-		}
+//		}
 //		List<Integer> idTrains = TrainDao.getTrainsByStations(1, 7);
 //		System.out.println("idTrains=" + idTrains);
 //		List<Integer> idTrainsDate = TrainDao.getTrainsByStationsAndDate(1, 7, new Date(118, 11, 14));

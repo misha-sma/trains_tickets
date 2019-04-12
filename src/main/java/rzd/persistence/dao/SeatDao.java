@@ -24,39 +24,22 @@ public class SeatDao {
 			+ "(SELECT travel_time FROM trains_stations WHERE id_train=? AND id_station=?)";
 	public static final String CARRIAGE_BY_ID_SEAT_SQL = "SELECT seat_number, carriages.* FROM seats INNER JOIN carriages ON "
 			+ "seats.id_carriage=carriages.id_carriage AND id_seat=?";
+	public static final String INSERT_SEAT_SQL = "INSERT INTO seats (id_carriage, seat_number) VALUES (?, ?)";
 
 	public static void addOneCarriageSeats(Carriage carriage) {
-		for (int seatNumber = 1; seatNumber <= CarriageDao.SEATS_COUNT_MAP
-				.get(carriage.getIdCarriageType()); ++seatNumber) {
-			addOneSeat(carriage, seatNumber);
-		}
-	}
-
-	public static void addOneSeat(Carriage carriage, int seatNumber) {
-		Connection con = null;
-		PreparedStatement ps = null;
-		try {
-			con = DBConnection.getDbConnection();
-			con.setAutoCommit(false);
-			String sql = "INSERT INTO seats (id_carriage, seat_number) VALUES (?, ?)";
-			ps = con.prepareStatement(sql);
-			ps.setLong(1, carriage.getIdCarriage());
-			ps.setInt(2, seatNumber);
-			ps.execute();
-			con.commit();
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (ps != null)
-					ps.close();
-				if (con != null)
-					con.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
+		try (Connection con = DBConnection.getDbConnection();
+				PreparedStatement ps = con.prepareStatement(INSERT_SEAT_SQL)) {
+			for (int seatNumber = 1; seatNumber <= CarriageDao.SEATS_COUNT_MAP
+					.get(carriage.getIdCarriageType()); ++seatNumber) {
+				ps.setLong(1, carriage.getIdCarriage());
+				ps.setInt(2, seatNumber);
+				ps.addBatch();
 			}
+			ps.executeBatch();
+		} catch (ClassNotFoundException e) {
+			logger.error(e.getMessage(), e);
+		} catch (SQLException e) {
+			logger.error(e.getMessage(), e);
 		}
 	}
 

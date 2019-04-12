@@ -4,9 +4,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -23,42 +25,59 @@ public class CarriageDao {
 	public static final Map<Integer, String> CARRIAGE_NAMES_MAP = new HashMap<Integer, String>();
 
 	public static final String CARRIAGE_TYPES_SQL = "SELECT * FROM carriage_types";
+	public static final String INSERT_CARRIAGE_SQL = "INSERT INTO carriages (id_train, departure_time, carriage_number, id_carriage_type) "
+			+ "VALUES (?, ?, ?, ?)";
 
-	public static List<Carriage> getCarriages() {
-		List<Carriage> carriages = new LinkedList<Carriage>();
-		Connection con = null;
-		PreparedStatement ps = null;
-		try {
-			con = DBConnection.getDbConnection();
-			con.setAutoCommit(false);
-			String sql = "SELECT * from carriages WHERE id_train=701 ORDER BY id_carriage";
-			ps = con.prepareStatement(sql);
+	public static List<Carriage> getCarriages(int idTrain, String date) {
+		List<Carriage> carriages = new ArrayList<Carriage>();
+		String sql = "SELECT * FROM carriages WHERE id_train=? AND departure_time>='" + date
+				+ " 00:00:00' AND departure_date<='" + date + " 23:59:59' ORDER BY id_carriage";
+		try (Connection con = DBConnection.getDbConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+			ps.setInt(1, idTrain);
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
 				long idCarriage = rs.getLong(1);
-				int idTrain = rs.getInt(2);
-				Date departureTime = new Date(rs.getTimestamp(3).getTime());
+				Date departureTime = rs.getTimestamp(3);
 				int carriageNumber = rs.getInt(4);
 				int idCarriageType = rs.getInt(5);
 				carriages.add(new Carriage(idCarriage, idTrain, departureTime, carriageNumber, idCarriageType));
 			}
 			rs.close();
-			con.commit();
 		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (ps != null)
-					ps.close();
-				if (con != null)
-					con.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			logger.error(e.getMessage(), e);
 		}
 		return carriages;
+	}
+
+	public static void saveCarriages(List<Carriage> carriages) {
+		try (Connection con = DBConnection.getDbConnection();
+				PreparedStatement ps = con.prepareStatement(INSERT_CARRIAGE_SQL, Statement.RETURN_GENERATED_KEYS)) {
+			for (Carriage carriage : carriages) {
+				ps.setInt(1, carriage.getIdTrain());
+				ps.setTimestamp(2, new Timestamp(carriage.getDepartureTime().getTime()));
+				ps.setInt(3, carriage.getCarriageNumber());
+				ps.setInt(4, carriage.getIdCarriageType());
+				ps.addBatch();
+			}
+			ps.executeBatch();
+			ResultSet rs = ps.getGeneratedKeys();
+			int i = 0;
+			while (rs.next()) {
+				long idCarriage = rs.getLong(1);
+				carriages.get(i).setIdCarriage(idCarriage);
+				++i;
+			}
+			rs.close();
+			if (i != carriages.size()) {
+				logger.error("Unsaved carriages");
+			}
+		} catch (ClassNotFoundException e) {
+			logger.error(e.getMessage(), e);
+		} catch (SQLException e) {
+			logger.error(e.getMessage(), e);
+		}
 	}
 
 	public static void loadCarriageCaches() {
