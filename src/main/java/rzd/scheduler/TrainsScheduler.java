@@ -30,6 +30,7 @@ public class TrainsScheduler {
 		scheduler.scheduleAtFixedRate(new Runnable() {
 			@Override
 			public void run() {
+				long initTime = System.currentTimeMillis();
 				for (int idTrain : TrainDao.TRAINS_MAP.keySet()) {
 					Train train = TrainDao.TRAINS_MAP.get(idTrain);
 					String depDays = train.getDepartureDays();
@@ -62,6 +63,7 @@ public class TrainsScheduler {
 					}
 					addCarriagesAndSeats(train.getDepartureTime(), idTrain, dateLast);
 				}
+				logger.info("Trains scheduler time=" + (System.currentTimeMillis() - initTime) + " ms");
 			}
 		}, initialDelay, PERIOD, TimeUnit.MILLISECONDS);
 	}

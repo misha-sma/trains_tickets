@@ -31,6 +31,7 @@ import rzd.persistence.entity.TrainTravelStayTimes;
 import rzd.persistence.entity.User;
 import rzd.renderer.HtmlRenderer;
 import rzd.renderer.SeatsRenderer;
+import rzd.scheduler.CarriagesSeatsValidator;
 import rzd.scheduler.TrainsScheduler;
 import rzd.util.DateUtil;
 import rzd.util.Util;
@@ -273,6 +274,7 @@ public class HttpServer {
 
 	public static void main(String[] args) throws Throwable {
 		loadCaches();
+		CarriagesSeatsValidator.validate();
 		TrainsScheduler.start();
 		ServerSocket serverSocket = new ServerSocket(PORT);
 		logger.info("Server started on port " + PORT + " !!!");
@@ -283,9 +285,11 @@ public class HttpServer {
 	}
 
 	private static void loadCaches() {
+		long initTime = System.currentTimeMillis();
 		CarriageDao.loadCarriageCaches();
 		StationDao.loadStationsCaches();
 		TrainDao.loadTrainsCache();
+		logger.info("Load caches time=" + (System.currentTimeMillis() - initTime) + " ms");
 	}
 
 	private static List<TrainTravelStayTimes> filterTrains4OneDay(List<TrainTravelStayTimes> trains, String date) {

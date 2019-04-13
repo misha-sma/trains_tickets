@@ -31,7 +31,7 @@ public class CarriageDao {
 	public static List<Carriage> getCarriages(int idTrain, String date) {
 		List<Carriage> carriages = new ArrayList<Carriage>();
 		String sql = "SELECT * FROM carriages WHERE id_train=? AND departure_time>='" + date
-				+ " 00:00:00' AND departure_date<='" + date + " 23:59:59' ORDER BY id_carriage";
+				+ " 00:00:00' AND departure_time<='" + date + " 23:59:59' ORDER BY id_carriage";
 		try (Connection con = DBConnection.getDbConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
 			ps.setInt(1, idTrain);
 			ResultSet rs = ps.executeQuery();
