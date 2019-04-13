@@ -37,20 +37,57 @@ public class TrainsScheduler {
 						Calendar cal = Calendar.getInstance();
 						cal.add(Calendar.DAY_OF_MONTH, BUY_DAYS_COUNT - 1);
 						String dateLast = DateUtil.SIMPLE_DATE_FORMAT.format(cal.getTime());
-						List<Carriage> carriages = CarriageDao.getCarriages(idTrain, dateLast);
-						for (Carriage carriage : carriages) {
-							carriage.setDepartureTime(new Date(carriage.getDepartureTime().getTime() + PERIOD));
-						}
-						CarriageDao.saveCarriages(carriages);
-						for (Carriage carriage : carriages) {
-							SeatDao.addOneCarriageSeats(carriage);
-						}
+						addCarriagesAndSeats(train.getDepartureTime(), idTrain, dateLast);
 						continue;
 					}
-
+					Calendar cal = Calendar.getInstance();
+					cal.add(Calendar.DAY_OF_MONTH, BUY_DAYS_COUNT);
+					String dayOfWeekEng = DateUtil.WEEK_DAY_FORMAT.format(cal.getTime());
+					String dayOfWeek = DateUtil.DAY_OF_WEEK_MAP_ENG.get(dayOfWeekEng);
+					if (!depDays.contains(dayOfWeek)) {
+						continue;
+					}
+					String dateLast = null;
+					for (int delta = 1; delta <= 7; ++delta) {
+						cal.add(Calendar.DAY_OF_MONTH, -1);
+						dayOfWeekEng = DateUtil.WEEK_DAY_FORMAT.format(cal.getTime());
+						dayOfWeek = DateUtil.DAY_OF_WEEK_MAP_ENG.get(dayOfWeekEng);
+						if (depDays.contains(dayOfWeek)) {
+							dateLast = DateUtil.SIMPLE_DATE_FORMAT.format(cal.getTime());
+							break;
+						}
+					}
+					if (dateLast == null) {
+						logger.error("Last departure day not found!!! idTrain=" + idTrain);
+					}
+					addCarriagesAndSeats(train.getDepartureTime(), idTrain, dateLast);
 				}
 			}
 		}, initialDelay, PERIOD, TimeUnit.MILLISECONDS);
+	}
+
+	private static void addCarriagesAndSeats(Date depTimeTrain, int idTrain, String dateLast) {
+		Date depTimeTrue = getDepTime(depTimeTrain);
+		List<Carriage> carriages = CarriageDao.getCarriages(idTrain, dateLast);
+		for (Carriage carriage : carriages) {
+			carriage.setDepartureTime(depTimeTrue);
+		}
+		CarriageDao.saveCarriages(carriages);
+		for (Carriage carriage : carriages) {
+			SeatDao.addOneCarriageSeats(carriage);
+		}
+	}
+
+	private static Date getDepTime(Date depTime) {
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.DAY_OF_MONTH, BUY_DAYS_COUNT);
+		Calendar calTime = Calendar.getInstance();
+		calTime.setTime(depTime);
+		cal.set(Calendar.HOUR_OF_DAY, calTime.get(Calendar.HOUR_OF_DAY));
+		cal.set(Calendar.MINUTE, calTime.get(Calendar.MINUTE));
+		cal.set(Calendar.SECOND, 0);
+		cal.set(Calendar.MILLISECOND, 0);
+		return cal.getTime();
 	}
 
 	public static void main(String[] args) {
