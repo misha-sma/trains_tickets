@@ -54,15 +54,12 @@ public class CarriagesSeatsValidator {
 					}
 				}
 				String dateStr = DateUtil.SIMPLE_DATE_FORMAT.format(cal.getTime());
-				List<Carriage> carriages = CarriageDao.getCarriages(idTrain, dateStr);
-				if (!carriages.isEmpty()) {
+				if (CarriageDao.isCarriagesExist(idTrain, dateStr)) {
 					continue;
 				}
-				carriages = getCarriages(idTrain, cal.getTime());
+				List<Carriage> carriages = getCarriages(idTrain, cal.getTime());
 				CarriageDao.saveCarriages(carriages);
-				for (Carriage carriage : carriages) {
-					SeatDao.addOneCarriageSeats(carriage);
-				}
+				SeatDao.addOneTrainSeats(carriages);
 			}
 		}
 		logger.info("Validate carriages and seats time=" + (System.currentTimeMillis() - initTime) + " ms");

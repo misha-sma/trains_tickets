@@ -51,6 +51,26 @@ public class CarriageDao {
 		return carriages;
 	}
 
+	public static boolean isCarriagesExist(int idTrain, String date) {
+		boolean result = false;
+		String sql = "SELECT count(1) FROM carriages WHERE id_train=? AND departure_time>='" + date
+				+ " 00:00:00' AND departure_time<='" + date + " 23:59:59'";
+		try (Connection con = DBConnection.getDbConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+			ps.setInt(1, idTrain);
+			ResultSet rs = ps.executeQuery();
+			if (rs.next()) {
+				int carriagesCount = rs.getInt(1);
+				result = carriagesCount > 0;
+			}
+			rs.close();
+		} catch (ClassNotFoundException e) {
+			logger.error(e.getMessage(), e);
+		} catch (SQLException e) {
+			logger.error(e.getMessage(), e);
+		}
+		return result;
+	}
+
 	public static void saveCarriages(List<Carriage> carriages) {
 		try (Connection con = DBConnection.getDbConnection();
 				PreparedStatement ps = con.prepareStatement(INSERT_CARRIAGE_SQL, Statement.RETURN_GENERATED_KEYS)) {

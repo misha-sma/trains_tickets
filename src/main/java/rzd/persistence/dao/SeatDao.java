@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -26,14 +27,16 @@ public class SeatDao {
 			+ "seats.id_carriage=carriages.id_carriage AND id_seat=?";
 	public static final String INSERT_SEAT_SQL = "INSERT INTO seats (id_carriage, seat_number) VALUES (?, ?)";
 
-	public static void addOneCarriageSeats(Carriage carriage) {
+	public static void addOneTrainSeats(List<Carriage> carriages) {
 		try (Connection con = DBConnection.getDbConnection();
 				PreparedStatement ps = con.prepareStatement(INSERT_SEAT_SQL)) {
-			for (int seatNumber = 1; seatNumber <= CarriageDao.SEATS_COUNT_MAP
-					.get(carriage.getIdCarriageType()); ++seatNumber) {
-				ps.setLong(1, carriage.getIdCarriage());
-				ps.setInt(2, seatNumber);
-				ps.addBatch();
+			for (Carriage carriage : carriages) {
+				for (int seatNumber = 1; seatNumber <= CarriageDao.SEATS_COUNT_MAP
+						.get(carriage.getIdCarriageType()); ++seatNumber) {
+					ps.setLong(1, carriage.getIdCarriage());
+					ps.setInt(2, seatNumber);
+					ps.addBatch();
+				}
 			}
 			ps.executeBatch();
 		} catch (ClassNotFoundException e) {

@@ -1,3 +1,6 @@
+рестарт постгреса в манджаро
+от рута systemctl restart postgresql
+
 sudo su - postgres -c "initdb --locale ru_RU.UTF-8 -E UTF8 -D '/var/lib/postgres/data'"
 
 WARNING: enabling "trust" authentication for local connections

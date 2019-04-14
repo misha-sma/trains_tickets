@@ -31,6 +31,7 @@ public class TrainsScheduler {
 			@Override
 			public void run() {
 				long initTime = System.currentTimeMillis();
+				logger.info("Trains scheduler started!!!");
 				for (int idTrain : TrainDao.TRAINS_MAP.keySet()) {
 					Train train = TrainDao.TRAINS_MAP.get(idTrain);
 					String depDays = train.getDepartureDays();
@@ -75,9 +76,7 @@ public class TrainsScheduler {
 			carriage.setDepartureTime(depTimeTrue);
 		}
 		CarriageDao.saveCarriages(carriages);
-		for (Carriage carriage : carriages) {
-			SeatDao.addOneCarriageSeats(carriage);
-		}
+		SeatDao.addOneTrainSeats(carriages);
 	}
 
 	private static Date getDepTime(Date depTime) {
