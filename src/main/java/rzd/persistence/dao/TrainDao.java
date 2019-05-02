@@ -36,6 +36,9 @@ public class TrainDao {
 	public static final String TRAVEL_STAY_TIME_SQL = "SELECT travel_time+stay_time FROM trains_stations WHERE id_train=? AND id_station=?";
 	public static final String TRAVEL_TIME_SQL = "SELECT travel_time FROM trains_stations WHERE id_train=? AND id_station=?";
 
+	public static final String ADD_TRAIN_STATION_SQL = "INSERT INTO trains_stations (id_train, id_station, travel_time, stay_time) "
+			+ "VALUES (?, ?, ?, ?)";
+
 	public static void loadTrainsCache() {
 		int count = Integer.MAX_VALUE;
 		int offset = 0;
@@ -134,6 +137,36 @@ public class TrainDao {
 		}
 		Collections.sort(result);
 		return result;
+	}
+
+	public static void addTrain(int idTrain, String name, String departureTime, String departureDays) {
+		String sql = "INSERT INTO trains (id_train, name, departure_time, departure_days) " + "VALUES (?, ?, '"
+				+ departureTime + "', ?)";
+		try (Connection con = DBConnection.getDbConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+			ps.setInt(1, idTrain);
+			ps.setString(2, name);
+			ps.setString(3, departureDays);
+			ps.execute();
+		} catch (ClassNotFoundException e) {
+			logger.error(e.getMessage(), e);
+		} catch (SQLException e) {
+			logger.error(e.getMessage(), e);
+		}
+	}
+
+	public static void addTrainStation(int idTrain, int idStation, int travelTime, int stayTime) {
+		try (Connection con = DBConnection.getDbConnection();
+				PreparedStatement ps = con.prepareStatement(ADD_TRAIN_STATION_SQL)) {
+			ps.setInt(1, idTrain);
+			ps.setInt(2, idStation);
+			ps.setInt(3, travelTime);
+			ps.setInt(4, stayTime);
+			ps.execute();
+		} catch (ClassNotFoundException e) {
+			logger.error(e.getMessage(), e);
+		} catch (SQLException e) {
+			logger.error(e.getMessage(), e);
+		}
 	}
 
 }

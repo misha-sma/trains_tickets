@@ -21,6 +21,8 @@ public class StationDao {
 	public static final int BATCH_SIZE = 1000;
 	public static final String STATIONS_SQL = "SELECT * FROM stations ORDER BY id_station LIMIT ? OFFSET ?";
 
+	public static final String ADD_STATION_SQL = "INSERT INTO stations (name) VALUES (?) RETURNING id_station";
+
 	public static void loadStationsCaches() {
 		int count = Integer.MAX_VALUE;
 		int offset = 0;
@@ -46,6 +48,24 @@ public class StationDao {
 			}
 			offset += count;
 		}
+	}
+
+	public static int addStation(String name) {
+		int idStation = -1;
+		try (Connection con = DBConnection.getDbConnection();
+				PreparedStatement ps = con.prepareStatement(ADD_STATION_SQL)) {
+			ps.setString(1, name);
+			ResultSet rs = ps.executeQuery();
+			if (rs.next()) {
+				idStation = rs.getInt(1);
+			}
+			rs.close();
+		} catch (ClassNotFoundException e) {
+			logger.error(e.getMessage(), e);
+		} catch (SQLException e) {
+			logger.error(e.getMessage(), e);
+		}
+		return idStation;
 	}
 
 }
