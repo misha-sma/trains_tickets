@@ -16,6 +16,7 @@ public class TrainsLoader {
 
 	public static final Pattern MINUTES_PATTERN = Pattern.compile("(\\d+) мин");
 	public static final Pattern HOURS_PATTERN = Pattern.compile("(\\d+) ч");
+	public static final Pattern DAYS_PATTERN = Pattern.compile("(\\d+) дн");
 
 	public static void main(String[] args) {
 		StationDao.loadStationsCaches();
@@ -44,6 +45,10 @@ public class TrainsLoader {
 				m = HOURS_PATTERN.matcher(parts[2]);
 				if (m.find()) {
 					travelTime += 60 * Integer.parseInt(m.group(1));
+				}
+				m = DAYS_PATTERN.matcher(parts[2]);
+				if (m.find()) {
+					travelTime += 24 * 60 * Integer.parseInt(m.group(1));
 				}
 				if (i == 4) {
 					stayTime = 0;
