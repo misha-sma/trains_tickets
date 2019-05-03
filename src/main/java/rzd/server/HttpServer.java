@@ -12,6 +12,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -273,6 +274,7 @@ public class HttpServer {
 	}
 
 	public static void main(String[] args) throws Throwable {
+		Locale.setDefault(Locale.ENGLISH);
 		loadCaches();
 		CarriagesSeatsValidator.validate();
 		TrainsScheduler.start();
