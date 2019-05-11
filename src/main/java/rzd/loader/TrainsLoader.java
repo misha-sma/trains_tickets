@@ -36,9 +36,21 @@ public class TrainsLoader {
 			for (int i = 4; i < lines.length; ++i) {
 				String[] parts = lines[i].split("\\|");
 				String station = parts[0].trim();
-				int stayTime = Integer.parseInt(parts[1].replace("мин", "").trim());
+				int stayTime = 0;
+				Matcher m = MINUTES_PATTERN.matcher(parts[1]);
+				if (m.find()) {
+					stayTime = Integer.parseInt(m.group(1));
+				}
+				m = HOURS_PATTERN.matcher(parts[1]);
+				if (m.find()) {
+					stayTime += 60 * Integer.parseInt(m.group(1));
+				}
+				if (stayTime == 0) {
+					stayTime = Integer.parseInt(parts[1].trim());
+				}
+				
 				int travelTime = 0;
-				Matcher m = MINUTES_PATTERN.matcher(parts[2]);
+				m = MINUTES_PATTERN.matcher(parts[2]);
 				if (m.find()) {
 					travelTime = Integer.parseInt(m.group(1));
 				}

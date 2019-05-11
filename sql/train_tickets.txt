@@ -1,3 +1,6 @@
+проверка названий станций и travel_time
+select * from trains_stations inner join stations on trains_stations.id_station=stations.id_station where trains_stations.id_train=100 order by travel_time;
+
 \dt посмотреть список таблиц в постгресе
 рестарт постгреса в манджаро
 от рута systemctl restart postgresql
