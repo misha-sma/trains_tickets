@@ -27,6 +27,7 @@ import rzd.persistence.dao.UserDao;
 import rzd.persistence.entity.Carriage;
 import rzd.persistence.entity.CarriageSeatNumber;
 import rzd.persistence.entity.SeatsSearchResult;
+import rzd.persistence.entity.TimeTable;
 import rzd.persistence.entity.Train;
 import rzd.persistence.entity.TrainTravelStayTimes;
 import rzd.persistence.entity.User;
@@ -203,8 +204,8 @@ public class HttpServer {
 						String depTime = trainTravelStayTimes.getDepartureTime();
 						String destTime = DateUtil.addMinutesToDate(train.getDepartureTime(),
 								trainTravelStayTimes.getDestinationTravelTime());
-						builder.append("<tr><td>").append(
-								idTrain + " " + train.getDepartureStation() + " - " + train.getDestinationStation());
+						builder.append("<tr><td>").append("<a href=\"?idTrain=" + idTrain + "\">" + idTrain + " "
+								+ train.getDepartureStation() + " - " + train.getDestinationStation() + "</a>");
 						if (train.getName() != null) {
 							builder.append("<br>" + "&laquo;" + train.getName() + "&raquo;");
 						}
@@ -234,6 +235,53 @@ public class HttpServer {
 					}
 					builder.append("</table>\n");
 					builder.append(HOME_PAGE_END);
+					writeHtmlResponse(builder.toString());
+				} else if (url.startsWith("?idTrain=")) {
+					// страница с расписанием поезда
+					Map<String, String> params = Util.parseParameters(url);
+					int idTrain = Integer.parseInt(params.get("idTrain"));
+					List<TimeTable> timeTable = TrainDao.getTimeTable(idTrain);
+					Train train = TrainDao.TRAINS_MAP.get(idTrain);
+					StringBuilder builder = new StringBuilder();
+					builder.append("<html>\n<meta charset=\"UTF-8\" />\n<body>\n");
+					builder.append("Расписание поезда №" + idTrain + " " + train.getDepartureStation() + " - "
+							+ train.getDestinationStation() + "<br><br>\n");
+					builder.append("<table>\n");
+					builder.append(
+							"<tr>\n<th>Станция</th>\n<th>Прибытие</th>\n<th>Стоянка</th>\n<th>Отправление</th>\n<th>Время в пути</th>\n</tr>\n");
+					for (TimeTable tt : timeTable) {
+						// название станции
+						builder.append("<tr><td>" + StationDao.STATIONS_ID_NAME_MAP.get(tt.getIdStation()) + "</td>");
+						// время прибытия
+						if (tt.getTravelTime() == 0) {
+							builder.append("<td></td>");
+						} else {
+							builder.append(
+									"<td>" + DateUtil.addMinutesToDate(train.getDepartureTime(), tt.getTravelTime())
+											+ "</td>");
+						}
+						// стоянка
+						if (tt.getTravelTime() == 0 || tt.getStayTime() == -1) {
+							builder.append("<td></td>");
+						} else {
+							builder.append("<td>" + DateUtil.formatMinutes(tt.getStayTime()) + "</td>");
+						}
+						// время отправления
+						if (tt.getStayTime() == -1) {
+							builder.append("<td></td>");
+						} else {
+							builder.append("<td>" + DateUtil.addMinutesToDate(train.getDepartureTime(),
+									tt.getTravelTime() + tt.getStayTime()) + "</td>");
+						}
+						// время в пути
+						if (tt.getTravelTime() == 0) {
+							builder.append("<td></td>");
+						} else {
+							builder.append("<td>" + DateUtil.formatMinutes(tt.getTravelTime()) + "</td>");
+						}
+						builder.append("</tr>\n");
+					}
+					builder.append("</table>\n</body>\n</html>");
 					writeHtmlResponse(builder.toString());
 				} else {
 					writeHtmlResponse(HOME_PAGE);

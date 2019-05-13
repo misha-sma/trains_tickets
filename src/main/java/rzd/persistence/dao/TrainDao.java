@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -15,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import rzd.persistence.DBConnection;
+import rzd.persistence.entity.TimeTable;
 import rzd.persistence.entity.Train;
 import rzd.persistence.entity.TrainTravelStayTimes;
 import rzd.util.DateUtil;
@@ -35,6 +37,7 @@ public class TrainDao {
 
 	public static final String TRAVEL_STAY_TIME_SQL = "SELECT travel_time+stay_time FROM trains_stations WHERE id_train=? AND id_station=?";
 	public static final String TRAVEL_TIME_SQL = "SELECT travel_time FROM trains_stations WHERE id_train=? AND id_station=?";
+	public static final String TIME_TABLE_SQL = "SELECT id_station, travel_time, stay_time FROM trains_stations WHERE id_train=? ORDER BY travel_time";
 
 	public static final String ADD_TRAIN_STATION_SQL = "INSERT INTO trains_stations (id_train, id_station, travel_time, stay_time) "
 			+ "VALUES (?, ?, ?, ?)";
@@ -110,6 +113,27 @@ public class TrainDao {
 			logger.error(e.getMessage(), e);
 		}
 		return travelTime;
+	}
+
+	public static List<TimeTable> getTimeTable(int idTrain) {
+		List<TimeTable> timeTable = new LinkedList<TimeTable>();
+		try (Connection con = DBConnection.getDbConnection();
+				PreparedStatement ps = con.prepareStatement(TIME_TABLE_SQL)) {
+			ps.setInt(1, idTrain);
+			ResultSet rs = ps.executeQuery();
+			while (rs.next()) {
+				int idStation = rs.getInt(1);
+				int travelTime = rs.getInt(2);
+				int stayTime = rs.getInt(3);
+				timeTable.add(new TimeTable(idStation, travelTime, stayTime));
+			}
+			rs.close();
+		} catch (ClassNotFoundException e) {
+			logger.error(e.getMessage(), e);
+		} catch (SQLException e) {
+			logger.error(e.getMessage(), e);
+		}
+		return timeTable;
 	}
 
 	// на все дни
