@@ -204,8 +204,10 @@ public class HttpServer {
 						String depTime = trainTravelStayTimes.getDepartureTime();
 						String destTime = DateUtil.addMinutesToDate(train.getDepartureTime(),
 								trainTravelStayTimes.getDestinationTravelTime());
-						builder.append("<tr><td>").append("<a href=\"?idTrain=" + idTrain + "\">" + idTrain + " "
-								+ train.getDepartureStation() + " - " + train.getDestinationStation() + "</a>");
+						builder.append("<tr><td>")
+								.append("<a href=\"?idTrain=" + idTrain + "&from=" + idDepartureStation + "&to="
+										+ idDestinationStation + "\">" + idTrain + " " + train.getDepartureStation()
+										+ " - " + train.getDestinationStation() + "</a>");
 						if (train.getName() != null) {
 							builder.append("<br>" + "&laquo;" + train.getName() + "&raquo;");
 						}
@@ -240,6 +242,8 @@ public class HttpServer {
 					// страница с расписанием поезда
 					Map<String, String> params = Util.parseParameters(url);
 					int idTrain = Integer.parseInt(params.get("idTrain"));
+					int idDepartureStation = Integer.parseInt(params.get("from"));
+					int idDestinationStation = Integer.parseInt(params.get("to"));
 					List<TimeTable> timeTable = TrainDao.getTimeTable(idTrain);
 					Train train = TrainDao.TRAINS_MAP.get(idTrain);
 					StringBuilder builder = new StringBuilder();
@@ -250,8 +254,11 @@ public class HttpServer {
 					builder.append(
 							"<tr>\n<th>Станция</th>\n<th>Прибытие</th>\n<th>Стоянка</th>\n<th>Отправление</th>\n<th>Время в пути</th>\n</tr>\n");
 					for (TimeTable tt : timeTable) {
+						String color = tt.getIdStation() == idDepartureStation
+								|| tt.getIdStation() == idDestinationStation ? " style=\"background-color:lime;\"" : "";
 						// название станции
-						builder.append("<tr><td>" + StationDao.STATIONS_ID_NAME_MAP.get(tt.getIdStation()) + "</td>");
+						builder.append("<tr" + color + "><td>" + StationDao.STATIONS_ID_NAME_MAP.get(tt.getIdStation())
+								+ "</td>");
 						// время прибытия
 						if (tt.getTravelTime() == 0) {
 							builder.append("<td></td>");
