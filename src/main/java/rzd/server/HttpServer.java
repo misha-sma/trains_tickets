@@ -290,6 +290,29 @@ public class HttpServer {
 					}
 					builder.append("</table>\n</body>\n</html>");
 					writeHtmlResponse(builder.toString());
+				} else if (url.startsWith("?suggest=")) {
+					// саджестинг выбора станций
+					Map<String, String> params = Util.parseParameters(url);
+					List<String> suggestions = StationDao.SUGGESTING_MAP.get(params.get("suggest"));
+					if (suggestions == null || suggestions.isEmpty()) {
+						writeJsonResponse("{\"suggestions\": []}");
+						return;
+					}
+					StringBuilder builder = new StringBuilder();
+					builder.append("{\"suggestions\": [");
+					int i = 0;
+					for (String name : suggestions) {
+						if (i > 0) {
+							builder.append(", ");
+						}
+						builder.append("\"" + name + "\"");
+						++i;
+					}
+					builder.append("]}");
+					writeJsonResponse(builder.toString());
+				} else if (url.startsWith("script/") || url.startsWith("css/")) {
+					String text = Util.loadTextWithResourceAsStream("/web/" + url);
+					writeHtmlResponse(text);
 				} else {
 					writeHtmlResponse(HOME_PAGE);
 				}
@@ -298,6 +321,14 @@ public class HttpServer {
 			}
 		}
 
+		private void writeJsonResponse(String json) throws IOException {
+			String response = "HTTP/1.1 200 OK\r\n" + "Server: misha-sma-Server/2012\r\n"
+					+ "Content-Type: application/json\r\n" + "Connection: close\r\n\r\n";
+			String result = response + json;
+			os.write(result.getBytes());
+			os.flush();
+		}
+		
 		private void writeHtmlResponse(String html) throws IOException {
 			String response = "HTTP/1.1 200 OK\r\n" + "Server: misha-sma-Server/2012\r\n"
 					+ "Content-Type: text/html\r\n" + "Connection: close\r\n\r\n";
@@ -331,7 +362,7 @@ public class HttpServer {
 	public static void main(String[] args) throws Throwable {
 		Locale.setDefault(Locale.ENGLISH);
 		loadCaches();
-		CarriagesSeatsValidator.validate();
+		//CarriagesSeatsValidator.validate();
 		TrainsScheduler.start();
 		ServerSocket serverSocket = new ServerSocket(PORT);
 		logger.info("Server started on port " + PORT + " !!!");

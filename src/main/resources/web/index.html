@@ -1,12 +1,28 @@
 <html>
   <meta charset="UTF-8" />
+  <head>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script type="text/javascript" src='script/suggesting.js'></script>
+    <link rel="stylesheet" type="text/css" href='css/suggesting.css' />
+    <script type="text/javascript">
+      var arr = [];
+    </script>
+  </head>
   <body>
     Найти поезда
-    <form method='get' name='sendQuery'> 
-      <input type="text" name="from" size="20" maxlength="100" placeholder="Откуда">
-      <input type="text" name="to" size="20" maxlength="100" placeholder="Куда">
+    <form autocomplete="off" method="get" name="sendQuery">
+      <div class="autocomplete" style="width:300px;">
+        <input id="from" type="text" name="from" size="20" maxlength="100" placeholder="Откуда">
+      </div>
+      <div class="autocomplete" style="width:300px;">
+        <input id="to" type="text" name="to" size="20" maxlength="100" placeholder="Куда">
+      </div>
       <input type="date" name="date" value="">
       <input type="submit" name="submitButton" value="Найти">
     </form>
+    <script>
+      autocomplete(document.getElementById("from"));
+      autocomplete(document.getElementById("to"));
+    </script>
   </body>
 </html>

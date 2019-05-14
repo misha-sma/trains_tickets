@@ -5,6 +5,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -17,6 +19,9 @@ public class StationDao {
 
 	public static final Map<String, Integer> STATIONS_NAME_ID_MAP = new HashMap<String, Integer>();
 	public static final Map<Integer, String> STATIONS_ID_NAME_MAP = new HashMap<Integer, String>();
+
+	public static final int MAX_SUGGESTIONS = 10;
+	public static final Map<String, List<String>> SUGGESTING_MAP = new HashMap<String, List<String>>();
 
 	public static final int BATCH_SIZE = 1000;
 	public static final String STATIONS_SQL = "SELECT * FROM stations ORDER BY id_station LIMIT ? OFFSET ?";
@@ -47,6 +52,26 @@ public class StationDao {
 				logger.error(e.getMessage(), e);
 			}
 			offset += count;
+		}
+		createSuggestingMap();
+	}
+
+	private static void createSuggestingMap() {
+		for (String name : STATIONS_ID_NAME_MAP.values()) {
+			for (int i = 1; i <= name.length(); ++i) {
+				String prefix = name.substring(0, i).toLowerCase();
+				List<String> value = SUGGESTING_MAP.get(prefix);
+				if (value == null) {
+					value = new LinkedList<String>();
+					value.add(name);
+					SUGGESTING_MAP.put(prefix, value);
+					continue;
+				}
+				if (value.size() >= MAX_SUGGESTIONS) {
+					continue;
+				}
+				value.add(name);
+			}
 		}
 	}
 
