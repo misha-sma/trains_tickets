@@ -293,7 +293,7 @@ public class HttpServer {
 				} else if (url.startsWith("?suggest=")) {
 					// саджестинг выбора станций
 					Map<String, String> params = Util.parseParameters(url);
-					List<String> suggestions = StationDao.SUGGESTING_MAP.get(params.get("suggest"));
+					List<String> suggestions = StationDao.SUGGESTING_MAP.get(params.get("suggest").toLowerCase());
 					if (suggestions == null || suggestions.isEmpty()) {
 						writeJsonResponse("{\"suggestions\": []}");
 						return;

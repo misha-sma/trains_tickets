@@ -4,7 +4,21 @@ function autocomplete(inp) {
   var currentFocus;
   /*execute a function when someone writes in the text field:*/
   inp.addEventListener("input", function(e) {
-      var a, b, i, val = this.value;
+      var a, b, i, arr = [], val = this.value;
+      $.ajax({
+     url: '?suggest=' + val,
+     beforeSend: function(xhr) {
+       if (xhr.overrideMimeType)
+         {
+           xhr.overrideMimeType("application/json");
+         }
+     },
+     dataType: 'json',
+     async: false,
+     success: function(jsondata) {
+       arr = jsondata.suggestions;
+     }
+    });
       /*close any already open lists of autocompleted values*/
       closeAllLists();
       if (!val) { return false;}
@@ -17,8 +31,6 @@ function autocomplete(inp) {
       this.parentNode.appendChild(a);
       /*for each item in the array...*/
       for (i = 0; i < arr.length; i++) {
-        /*check if the item starts with the same letters as the text field value:*/
-        if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
           /*create a DIV element for each matching element:*/
           b = document.createElement("DIV");
           /*make the matching letters bold:*/
@@ -35,24 +47,10 @@ function autocomplete(inp) {
               closeAllLists();
           });
           a.appendChild(b);
-        }
       }
   });
   /*execute a function presses a key on the keyboard:*/
   inp.addEventListener("keydown", function(e) {
-    $.ajax({
-     url: '?suggest=' + document.getElementById(this.id).value,
-     beforeSend: function(xhr) {
-       if (xhr.overrideMimeType)
-         {
-           xhr.overrideMimeType("application/json");
-         }
-     },
-     dataType: 'json',
-     success: function(jsondata) {
-       arr = jsondata.suggestions;
-     }
-    });
       var x = document.getElementById(this.id + "autocomplete-list");
       if (x) x = x.getElementsByTagName("div");
       if (e.keyCode == 40) {
