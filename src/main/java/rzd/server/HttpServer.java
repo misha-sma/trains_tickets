@@ -293,10 +293,15 @@ public class HttpServer {
 				} else if (url.startsWith("?suggest=")) {
 					// саджестинг выбора станций
 					Map<String, String> params = Util.parseParameters(url);
-					List<String> suggestions = StationDao.SUGGESTING_MAP.get(params.get("suggest").toLowerCase());
+					String letters = params.get("suggest").toLowerCase();
+					List<String> suggestions = StationDao.SUGGESTING_MAP.get(letters);
 					if (suggestions == null || suggestions.isEmpty()) {
-						writeJsonResponse("{\"suggestions\": []}");
-						return;
+						String lettersRus = StationDao.translit(letters);
+						suggestions = StationDao.SUGGESTING_MAP.get(lettersRus);
+						if (suggestions == null || suggestions.isEmpty()) {
+							writeJsonResponse("{\"suggestions\": []}");
+							return;
+						}
 					}
 					StringBuilder builder = new StringBuilder();
 					builder.append("{\"suggestions\": [");

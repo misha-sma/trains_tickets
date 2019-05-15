@@ -21,6 +21,7 @@ public class StationDao {
 	public static final Map<Integer, String> STATIONS_ID_NAME_MAP = new HashMap<Integer, String>();
 
 	public static final int MAX_SUGGESTIONS = 10;
+	public static final Map<Character, Character> TRANSLIT_MAP = new HashMap<Character, Character>();
 	public static final Map<String, List<String>> SUGGESTING_MAP = new HashMap<String, List<String>>();
 
 	public static final int BATCH_SIZE = 1000;
@@ -54,6 +55,7 @@ public class StationDao {
 			offset += count;
 		}
 		createSuggestingMap();
+		setTranslitMap();
 	}
 
 	private static void createSuggestingMap() {
@@ -73,6 +75,67 @@ public class StationDao {
 				value.add(name);
 			}
 		}
+	}
+
+	public static String translit(String str) {
+		StringBuilder builder = new StringBuilder();
+		for (int i = 0; i < str.length(); ++i) {
+			char c = str.charAt(i);
+			Character cEng = TRANSLIT_MAP.get(c);
+			if (cEng == null) {
+				return null;
+			}
+			builder.append(cEng);
+		}
+		return builder.toString();
+	}
+
+	private static void setTranslitMap() {
+		TRANSLIT_MAP.put('q', 'й');
+		TRANSLIT_MAP.put('w', 'ц');
+		TRANSLIT_MAP.put('e', 'у');
+		TRANSLIT_MAP.put('r', 'к');
+		TRANSLIT_MAP.put('t', 'е');
+		TRANSLIT_MAP.put('y', 'н');
+		TRANSLIT_MAP.put('u', 'г');
+		TRANSLIT_MAP.put('i', 'ш');
+		TRANSLIT_MAP.put('o', 'щ');
+		TRANSLIT_MAP.put('p', 'з');
+		TRANSLIT_MAP.put('[', 'х');
+		TRANSLIT_MAP.put(']', 'ъ');
+		TRANSLIT_MAP.put('a', 'ф');
+		TRANSLIT_MAP.put('s', 'ы');
+		TRANSLIT_MAP.put('d', 'в');
+		TRANSLIT_MAP.put('f', 'а');
+		TRANSLIT_MAP.put('g', 'п');
+		TRANSLIT_MAP.put('h', 'р');
+		TRANSLIT_MAP.put('j', 'о');
+		TRANSLIT_MAP.put('k', 'л');
+		TRANSLIT_MAP.put('l', 'д');
+		TRANSLIT_MAP.put(';', 'ж');
+		TRANSLIT_MAP.put('\'', 'э');
+		TRANSLIT_MAP.put('z', 'я');
+		TRANSLIT_MAP.put('x', 'ч');
+		TRANSLIT_MAP.put('c', 'с');
+		TRANSLIT_MAP.put('v', 'м');
+		TRANSLIT_MAP.put('b', 'и');
+		TRANSLIT_MAP.put('n', 'т');
+		TRANSLIT_MAP.put('m', 'ь');
+		TRANSLIT_MAP.put(',', 'б');
+		TRANSLIT_MAP.put('.', 'ю');
+		TRANSLIT_MAP.put('`', 'ё');
+		TRANSLIT_MAP.put(' ', ' ');
+		TRANSLIT_MAP.put('-', '-');
+		TRANSLIT_MAP.put('0', '0');
+		TRANSLIT_MAP.put('1', '1');
+		TRANSLIT_MAP.put('2', '2');
+		TRANSLIT_MAP.put('3', '3');
+		TRANSLIT_MAP.put('4', '4');
+		TRANSLIT_MAP.put('5', '5');
+		TRANSLIT_MAP.put('6', '6');
+		TRANSLIT_MAP.put('7', '7');
+		TRANSLIT_MAP.put('8', '8');
+		TRANSLIT_MAP.put('9', '9');
 	}
 
 	public static int addStation(String name) {
