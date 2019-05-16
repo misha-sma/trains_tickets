@@ -25,13 +25,15 @@ public class StationDao {
 	public static final Map<String, List<String>> SUGGESTING_MAP = new HashMap<String, List<String>>();
 
 	public static final int BATCH_SIZE = 1000;
-	public static final String STATIONS_SQL = "SELECT * FROM stations ORDER BY id_station LIMIT ? OFFSET ?";
+	public static final String STATIONS_SQL = "SELECT id_station, name FROM stations ORDER BY peoples_count DESC LIMIT ? OFFSET ?";
 
 	public static final String ADD_STATION_SQL = "INSERT INTO stations (name) VALUES (?) RETURNING id_station";
+	public static final String ADD_PEOPLES_COUNT_SQL = "UPDATE stations SET peoples_count=? WHERE id_station=?";
 
 	public static void loadStationsCaches() {
 		int count = Integer.MAX_VALUE;
 		int offset = 0;
+		List<String> names = new LinkedList<String>();
 		while (count >= BATCH_SIZE) {
 			try (Connection con = DBConnection.getDbConnection();
 					PreparedStatement ps = con.prepareStatement(STATIONS_SQL)) {
@@ -45,6 +47,7 @@ public class StationDao {
 					String name = rs.getString(2);
 					STATIONS_NAME_ID_MAP.put(name.toLowerCase(), idStation);
 					STATIONS_ID_NAME_MAP.put(idStation, name);
+					names.add(name);
 				}
 				rs.close();
 			} catch (ClassNotFoundException e) {
@@ -54,12 +57,13 @@ public class StationDao {
 			}
 			offset += count;
 		}
-		createSuggestingMap();
+		createSuggestingMap(names);
+		logger.info("Suggesting map size=" + SUGGESTING_MAP.size());
 		setTranslitMap();
 	}
 
-	private static void createSuggestingMap() {
-		for (String name : STATIONS_ID_NAME_MAP.values()) {
+	private static void createSuggestingMap(List<String> names) {
+		for (String name : names) {
 			for (int i = 1; i <= name.length(); ++i) {
 				String prefix = name.substring(0, i).toLowerCase();
 				List<String> value = SUGGESTING_MAP.get(prefix);
@@ -156,4 +160,16 @@ public class StationDao {
 		return idStation;
 	}
 
+	public static void addPeoplesCount(int idStation, int count) {
+		try (Connection con = DBConnection.getDbConnection();
+				PreparedStatement ps = con.prepareStatement(ADD_PEOPLES_COUNT_SQL)) {
+			ps.setInt(1, count);
+			ps.setInt(2, idStation);
+			ps.execute();
+		} catch (ClassNotFoundException e) {
+			logger.error(e.getMessage(), e);
+		} catch (SQLException e) {
+			logger.error(e.getMessage(), e);
+		}
+	}
 }
