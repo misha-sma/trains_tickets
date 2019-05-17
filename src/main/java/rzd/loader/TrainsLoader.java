@@ -48,7 +48,7 @@ public class TrainsLoader {
 				if (stayTime == 0) {
 					stayTime = Integer.parseInt(parts[1].trim());
 				}
-				
+
 				int travelTime = 0;
 				m = MINUTES_PATTERN.matcher(parts[2]);
 				if (m.find()) {
@@ -68,7 +68,8 @@ public class TrainsLoader {
 				}
 				Integer idStation = StationDao.STATIONS_NAME_ID_MAP.get(station.toLowerCase());
 				if (idStation == null) {
-					idStation = StationDao.addStation(station);
+					int peoplesCount = Integer.parseInt(parts[3].trim());
+					idStation = StationDao.addStation(station, peoplesCount);
 					StationDao.STATIONS_NAME_ID_MAP.put(station.toLowerCase(), idStation);
 					StationDao.STATIONS_ID_NAME_MAP.put(idStation, station);
 				}

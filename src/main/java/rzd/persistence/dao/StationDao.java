@@ -27,7 +27,7 @@ public class StationDao {
 	public static final int BATCH_SIZE = 1000;
 	public static final String STATIONS_SQL = "SELECT id_station, name FROM stations ORDER BY peoples_count DESC LIMIT ? OFFSET ?";
 
-	public static final String ADD_STATION_SQL = "INSERT INTO stations (name) VALUES (?) RETURNING id_station";
+	public static final String ADD_STATION_SQL = "INSERT INTO stations (name, peoples_count) VALUES (?, ?) RETURNING id_station";
 	public static final String ADD_PEOPLES_COUNT_SQL = "UPDATE stations SET peoples_count=? WHERE id_station=?";
 
 	public static void loadStationsCaches() {
@@ -58,7 +58,8 @@ public class StationDao {
 			offset += count;
 		}
 		createSuggestingMap(names);
-		logger.info("Suggesting map size=" + SUGGESTING_MAP.size());
+		logger.info("Stations count=" + names.size() + "  Suggesting map size=" + SUGGESTING_MAP.size() + "  Ratio="
+				+ ((double) SUGGESTING_MAP.size() / names.size()));
 		setTranslitMap();
 	}
 
@@ -142,11 +143,12 @@ public class StationDao {
 		TRANSLIT_MAP.put('9', '9');
 	}
 
-	public static int addStation(String name) {
+	public static int addStation(String name, int count) {
 		int idStation = -1;
 		try (Connection con = DBConnection.getDbConnection();
 				PreparedStatement ps = con.prepareStatement(ADD_STATION_SQL)) {
 			ps.setString(1, name);
+			ps.setInt(2, count);
 			ResultSet rs = ps.executeQuery();
 			if (rs.next()) {
 				idStation = rs.getInt(1);

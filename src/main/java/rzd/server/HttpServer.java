@@ -367,7 +367,7 @@ public class HttpServer {
 	public static void main(String[] args) throws Throwable {
 		Locale.setDefault(Locale.ENGLISH);
 		loadCaches();
-		//CarriagesSeatsValidator.validate();
+		CarriagesSeatsValidator.validate();
 		TrainsScheduler.start();
 		ServerSocket serverSocket = new ServerSocket(PORT);
 		logger.info("Server started on port " + PORT + " !!!");
