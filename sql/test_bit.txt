@@ -1,0 +1,118 @@
+классный пост про размеры баз и таблиц
+https://romantelychko.com/blog/1211/
+
+про сабстринг в постгресе
+https://www.postgresql.org/docs/9.1/functions-string.html
+http://www.postgresqltutorial.com/postgresql-substring/
+
+про тип bit в постгресе
+https://postgrespro.ru/docs/postgrespro/10/datatype-binary#id-1.5.7.12.9
+https://postgrespro.ru/docs/postgrespro/10/functions-bitstring
+https://postgrespro.ru/docs/postgrespro/10/datatype-bit
+https://postgrespro.ru/docs/postgrespro/10/datatype
+
+rzd=# create table test_bit ( id_test serial PRIMARY KEY, stages bit(10));
+CREATE TABLE
+rzd=# insert into test_bit (stages) values (B'0000000000');
+INSERT 0 1
+rzd=# insert into test_bit (stages) values (B'1111111111');
+INSERT 0 1
+rzd=# insert into test_bit (stages) values (B'1110001111');   
+INSERT 0 1
+rzd=# select * from test_bit;
+ id_test |   stages   
+---------+------------
+       1 | 0000000000
+       2 | 1111111111
+       3 | 1110001111
+(3 rows)
+
+rzd=# select id_test, substring(stages, 3, 5) from test_bit;
+ id_test | substring 
+---------+-----------
+       1 | 00000
+       2 | 11111
+       3 | 10001
+(3 rows)
+
+rzd=# select * from test_bit where substring(stages, 3, 5)=B'00000';
+ id_test |   stages   
+---------+------------
+       1 | 0000000000
+(1 row)
+
+rzd=# select * from test_bit where substring(stages, 4, 3)=B'00000'; 
+ id_test | stages 
+---------+--------
+(0 rows)
+
+rzd=# select * from test_bit where substring(stages, 4, 3)=B'000';  
+ id_test |   stages   
+---------+------------
+       1 | 0000000000
+       3 | 1110001111
+(2 rows)
+
+rzd=# SELECT pg_database_size( 'rzd' );        
+ pg_database_size 
+------------------
+        325786759
+(1 row)
+
+rzd=# SELECT pg_size_pretty(pg_database_size( 'rzd' ));
+ pg_size_pretty 
+----------------
+ 311 MB
+(1 row)
+
+rzd=# SELECT pg_size_pretty( pg_total_relation_size( 'seats' ) );          
+ pg_size_pretty 
+----------------
+ 300 MB
+(1 row)
+
+rzd=# SELECT pg_size_pretty( pg_total_relation_size( 'carriages' ) );     
+ pg_size_pretty 
+----------------
+ 2216 kB
+(1 row)
+
+rzd=# SELECT pg_size_pretty( pg_total_relation_size( 'trains' ) );
+ pg_size_pretty 
+----------------
+ 32 kB
+(1 row)
+
+rzd=# SELECT pg_size_pretty( pg_total_relation_size( 'stations' ) );
+ pg_size_pretty 
+----------------
+ 88 kB
+(1 row)
+
+rzd=# SELECT pg_size_pretty( pg_total_relation_size( 'trains_stations' ) );
+ pg_size_pretty 
+----------------
+ 96 kB
+(1 row)
+
+rzd=# vacuum full;
+VACUUM
+rzd=# SELECT pg_size_pretty(pg_database_size( 'rzd' ));
+ pg_size_pretty 
+----------------
+ 309 MB
+(1 row)
+
+rzd=# SELECT pg_size_pretty( pg_total_relation_size( 'seats' ) );
+ pg_size_pretty 
+----------------
+ 300 MB
+(1 row)
+
+rzd=# SELECT pg_size_pretty( pg_total_relation_size( 'carriages' ) );
+ pg_size_pretty 
+----------------
+ 2192 kB
+(1 row)
+
+rzd=# 
