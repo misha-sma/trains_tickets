@@ -1,3 +1,27 @@
+--места
+CREATE TABLE IF NOT EXISTS seats (id_seat bigserial PRIMARY KEY, id_carriage bigint, seat_number int, stages varbit 
+DEFAULT B'00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000');
+
+------------------------------------------------
+
+--места
+CREATE TABLE IF NOT EXISTS seats (id_seat bigserial PRIMARY KEY, id_carriage bigint, seat_number int, stages varbit(152) 
+DEFAULT B'00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000');
+
+------------------------------------------------------------------
+
+--места
+CREATE TABLE IF NOT EXISTS seats (id_seat bigserial PRIMARY KEY, id_carriage bigint, seat_number int, stages bit(152) 
+DEFAULT B'00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000');
+
+ALTER TABLE seats ADD CONSTRAINT fk_seats_carriages FOREIGN KEY (id_carriage) REFERENCES carriages(id_carriage);
+ALTER TABLE tickets ADD CONSTRAINT fk_tickets_seats FOREIGN KEY (id_seat) REFERENCES seats(id_seat);
+
+alter table tickets drop CONSTRAINT fk_tickets_seats;
+alter table seats rename to seats_boolean;
+
+truncate carriages cascade;
+
 классный пост про размеры баз и таблиц
 https://romantelychko.com/blog/1211/
 
@@ -116,3 +140,5 @@ rzd=# SELECT pg_size_pretty( pg_total_relation_size( 'carriages' ) );
 (1 row)
 
 rzd=# 
+
+update test_bit set stages=overlay(stages placing B'111' from 2) where id_test=1;

@@ -16,6 +16,7 @@ import rzd.persistence.DBConnection;
 import rzd.persistence.entity.Carriage;
 import rzd.persistence.entity.CarriageSeatNumber;
 import rzd.persistence.entity.SeatsSearchResult;
+import rzd.util.Util;
 
 public class SeatDao {
 	private static final Logger logger = LoggerFactory.getLogger(SeatDao.class);
@@ -25,11 +26,11 @@ public class SeatDao {
 			+ "(SELECT travel_time FROM trains_stations WHERE id_train=? AND id_station=?)";
 	public static final String CARRIAGE_BY_ID_SEAT_SQL = "SELECT seat_number, carriages.* FROM seats INNER JOIN carriages ON "
 			+ "seats.id_carriage=carriages.id_carriage AND id_seat=?";
-	public static final String INSERT_SEAT_SQL = "INSERT INTO seats (id_carriage, seat_number) VALUES (?, ?)";
 
-	public static void addOneTrainSeats(List<Carriage> carriages) {
-		try (Connection con = DBConnection.getDbConnection();
-				PreparedStatement ps = con.prepareStatement(INSERT_SEAT_SQL)) {
+	public static void addOneTrainSeats(List<Carriage> carriages, int stagesCount) {
+		String sql = "INSERT INTO seats (id_carriage, seat_number, stages) VALUES (?, ?, B'"
+				+ Util.getZerosString(stagesCount) + "')";
+		try (Connection con = DBConnection.getDbConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
 			for (Carriage carriage : carriages) {
 				for (int seatNumber = 1; seatNumber <= CarriageDao.SEATS_COUNT_MAP
 						.get(carriage.getIdCarriageType()); ++seatNumber) {
@@ -66,33 +67,23 @@ public class SeatDao {
 		return count;
 	}
 
-	private static String getCondition(int idTrain, int idDepartureStation, int idDestinationStation) {
-		int num1 = getPreviousStationsCount(idTrain, idDepartureStation);
-		int num2 = getPreviousStationsCount(idTrain, idDestinationStation);
-		StringBuilder builder = new StringBuilder();
-		for (int i = num1; i < num2; ++i) {
-			if (i > num1) {
-				builder.append("AND ");
-			}
-			builder.append("stage_" + i + "='f' ");
-		}
-		return builder.toString();
-	}
-
 	public static SeatsSearchResult getFreeSeats(int idTrain, String departureDate, int idDepartureStation,
 			int idDestinationStation, int delay) {
 		int maxCarriageNumber = 0;
 		Map<Integer, Integer> carriageTypesMap = new HashMap<Integer, Integer>();
 		Map<Integer, Long> seatsMap = new HashMap<Integer, Long>();
-		String condition = getCondition(idTrain, idDepartureStation, idDestinationStation);
+		int num1 = getPreviousStationsCount(idTrain, idDepartureStation);
+		int num2 = getPreviousStationsCount(idTrain, idDestinationStation);
 		String sql = "SELECT id_seat, seat_number, carriage_number, id_carriage_type FROM seats INNER JOIN carriages "
 				+ "ON seats.id_carriage=carriages.id_carriage WHERE id_train=? AND departure_time+"
 				+ "?*interval '1 minute'>='" + departureDate + " 00:00:00' AND departure_time+?*interval '1 minute'<='"
-				+ departureDate + " 23:59:59' AND " + condition;
+				+ departureDate + " 23:59:59' AND substring(stages, ?, ?)=B'" + Util.getZerosString(num2 - num1) + "'";
 		try (Connection con = DBConnection.getDbConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
 			ps.setInt(1, idTrain);
 			ps.setInt(2, delay);
 			ps.setInt(3, delay);
+			ps.setInt(4, num1);
+			ps.setInt(5, num2 - num1);
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
 				long idSeat = rs.getLong(1);
@@ -114,24 +105,14 @@ public class SeatDao {
 		return new SeatsSearchResult(maxCarriageNumber, carriageTypesMap, seatsMap);
 	}
 
-	private static String getCondition4Update(int idTrain, int idDepartureStation, int idDestinationStation) {
+	public static void updateSeat(long idSeat, int idDepartureStation, int idDestinationStation, int idTrain) {
 		int num1 = getPreviousStationsCount(idTrain, idDepartureStation);
 		int num2 = getPreviousStationsCount(idTrain, idDestinationStation);
-		StringBuilder builder = new StringBuilder();
-		for (int i = num1; i < num2; ++i) {
-			if (i > num1) {
-				builder.append(", ");
-			}
-			builder.append("stage_" + i + "='t' ");
-		}
-		return builder.toString();
-	}
-
-	public static void updateSeat(long idSeat, int idDepartureStation, int idDestinationStation, int idTrain) {
-		String condition = getCondition4Update(idTrain, idDepartureStation, idDestinationStation);
-		String sql = "UPDATE seats SET " + condition + " WHERE id_seat=?";
+		String sql = "UPDATE seats SET stages=overlay(stages placing B'" + Util.getOnesString(num2 - num1)
+				+ "' from ?) WHERE id_seat=?";
 		try (Connection con = DBConnection.getDbConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
-			ps.setLong(1, idSeat);
+			ps.setInt(1, num1);
+			ps.setLong(2, idSeat);
 			ps.execute();
 		} catch (ClassNotFoundException e) {
 			logger.error(e.getMessage(), e);

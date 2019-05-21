@@ -37,6 +37,7 @@ public class TrainDao {
 
 	public static final String TRAVEL_STAY_TIME_SQL = "SELECT travel_time+stay_time FROM trains_stations WHERE id_train=? AND id_station=?";
 	public static final String TRAVEL_TIME_SQL = "SELECT travel_time FROM trains_stations WHERE id_train=? AND id_station=?";
+	public static final String STAGES_COUNT_SQL = "SELECT count(1) FROM trains_stations WHERE id_train=?";
 	public static final String TIME_TABLE_SQL = "SELECT id_station, travel_time, stay_time FROM trains_stations WHERE id_train=? ORDER BY travel_time";
 
 	public static final String ADD_TRAIN_STATION_SQL = "INSERT INTO trains_stations (id_train, id_station, travel_time, stay_time) "
@@ -113,6 +114,24 @@ public class TrainDao {
 			logger.error(e.getMessage(), e);
 		}
 		return travelTime;
+	}
+
+	public static int getStagesCount(int idTrain) {
+		int stagesCount = 152;
+		try (Connection con = DBConnection.getDbConnection();
+				PreparedStatement ps = con.prepareStatement(STAGES_COUNT_SQL)) {
+			ps.setInt(1, idTrain);
+			ResultSet rs = ps.executeQuery();
+			if (rs.next()) {
+				stagesCount = rs.getInt(1) - 1;
+			}
+			rs.close();
+		} catch (ClassNotFoundException e) {
+			logger.error(e.getMessage(), e);
+		} catch (SQLException e) {
+			logger.error(e.getMessage(), e);
+		}
+		return stagesCount;
 	}
 
 	public static List<TimeTable> getTimeTable(int idTrain) {

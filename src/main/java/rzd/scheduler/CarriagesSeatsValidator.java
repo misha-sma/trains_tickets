@@ -44,6 +44,7 @@ public class CarriagesSeatsValidator {
 			cal.set(Calendar.SECOND, 0);
 			cal.set(Calendar.MILLISECOND, 0);
 			cal.add(Calendar.DAY_OF_MONTH, -1);
+			int stagesCount = TrainDao.getStagesCount(idTrain);
 			for (int delta = 0; delta <= TrainsScheduler.BUY_DAYS_COUNT; ++delta) {
 				cal.add(Calendar.DAY_OF_MONTH, 1);
 				if (!depDays.equals("ежд")) {
@@ -59,7 +60,7 @@ public class CarriagesSeatsValidator {
 				}
 				List<Carriage> carriages = getCarriages(idTrain, cal.getTime());
 				CarriageDao.saveCarriages(carriages);
-				SeatDao.addOneTrainSeats(carriages);
+				SeatDao.addOneTrainSeats(carriages, stagesCount);
 			}
 		}
 		logger.info("Validate carriages and seats time=" + (System.currentTimeMillis() - initTime) + " ms");

@@ -72,11 +72,12 @@ public class TrainsScheduler {
 	private static void addCarriagesAndSeats(Date depTimeTrain, int idTrain, String dateLast) {
 		Date depTimeTrue = getDepTime(depTimeTrain);
 		List<Carriage> carriages = CarriageDao.getCarriages(idTrain, dateLast);
+		int stagesCount = TrainDao.getStagesCount(idTrain);
 		for (Carriage carriage : carriages) {
 			carriage.setDepartureTime(depTimeTrue);
 		}
 		CarriageDao.saveCarriages(carriages);
-		SeatDao.addOneTrainSeats(carriages);
+		SeatDao.addOneTrainSeats(carriages, stagesCount);
 	}
 
 	private static Date getDepTime(Date depTime) {
