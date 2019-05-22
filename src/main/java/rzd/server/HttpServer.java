@@ -318,6 +318,9 @@ public class HttpServer {
 				} else if (url.startsWith("script/") || url.startsWith("css/")) {
 					String text = Util.loadTextWithResourceAsStream("/web/" + url);
 					writeHtmlResponse(text);
+				} else if (url.startsWith("images/")) {
+					byte[] imageBytes = Util.loadBytesWithResourceAsStream("/web/" + url);
+					writeImageResponse(imageBytes);
 				} else {
 					writeHtmlResponse(HOME_PAGE);
 				}
@@ -348,6 +351,15 @@ public class HttpServer {
 					+ "Connection: close\r\n\r\n";
 			os.write(response.getBytes());
 			os.write(FAVICON_BYTES);
+			os.flush();
+		}
+
+		private void writeImageResponse(byte[] imageBytes) throws IOException {
+			String response = "HTTP/1.1 200 OK\r\n" + "Server: misha-sma-Server/2012\r\n"
+					+ "Content-Type: image/png\r\n" + "Content-Length: " + imageBytes.length + "\r\n"
+					+ "Connection: close\r\n\r\n";
+			os.write(response.getBytes());
+			os.write(imageBytes);
 			os.flush();
 		}
 

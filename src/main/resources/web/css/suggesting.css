@@ -13,6 +13,9 @@ input {
   padding: 10px;
   font-size: 16px;
 }
+input[type=image] {
+  vertical-align: middle;
+}
 input[type=text] {
   background-color: #f1f1f1;
   width: 100%;
