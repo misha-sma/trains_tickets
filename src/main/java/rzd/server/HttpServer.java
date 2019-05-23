@@ -81,6 +81,8 @@ public class HttpServer {
 				logger.info("url=" + url);
 				if (url.equals("favicon.ico")) {
 					writeFaviconResponse();
+				} else if (url.isEmpty() || url.equals("/")) {
+					writeHtmlResponse(HOME_PAGE);
 				} else if (url.startsWith("?surname=")) {
 					// сохранение данных пассажира
 					Map<String, String> params = Util.parseParameters(url);
@@ -324,7 +326,7 @@ public class HttpServer {
 					String extention = url.substring(dotPos).toLowerCase();
 					writeImageResponse(imageBytes, extention);
 				} else {
-					writeHtmlResponse(HOME_PAGE);
+					writeRedirectResponse();
 				}
 			} catch (Throwable t) {
 				logger.error(t.getMessage(), t);
@@ -344,6 +346,13 @@ public class HttpServer {
 					+ "Content-Type: text/html\r\n" + "Connection: close\r\n\r\n";
 			String result = response + html;
 			os.write(result.getBytes());
+			os.flush();
+		}
+
+		private void writeRedirectResponse() throws IOException {
+			String response = "HTTP/1.1 301 Moved Permanently\r\n" + "Server: misha-sma-Server/2012\r\n"
+					+ "Location: /\r\n" + "Connection: close\r\n\r\n";
+			os.write(response.getBytes());
 			os.flush();
 		}
 
