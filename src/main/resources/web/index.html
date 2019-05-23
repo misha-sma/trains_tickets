@@ -4,7 +4,9 @@
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script type="text/javascript" src='script/suggesting.js'></script>
     <script type="text/javascript" src='script/change.js'></script>
+    <script type="text/javascript" src='script/tcal.js'></script>
     <link rel="stylesheet" type="text/css" href='css/suggesting.css' />
+    <link rel="stylesheet" type="text/css" href='css/tcal.css' />
   </head>
   <body>
     Найти поезда
@@ -16,7 +18,7 @@
       <div class="autocomplete" style="width:300px;">
         <input id="to" type="text" name="to" size="20" maxlength="100" placeholder="Куда">
       </div>
-      <input type="date" name="date" value="">
+      <input type="text" name="date" class="tcal" value="" style="width:200px;">
       <input type="submit" name="submitButton" value="Найти">
     </form>
     <script>

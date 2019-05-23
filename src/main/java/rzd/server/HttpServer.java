@@ -320,7 +320,9 @@ public class HttpServer {
 					writeHtmlResponse(text);
 				} else if (url.startsWith("images/")) {
 					byte[] imageBytes = Util.loadBytesWithResourceAsStream("/web/" + url);
-					writeImageResponse(imageBytes);
+					int dotPos = url.lastIndexOf('.') + 1;
+					String extention = url.substring(dotPos).toLowerCase();
+					writeImageResponse(imageBytes, extention);
 				} else {
 					writeHtmlResponse(HOME_PAGE);
 				}
@@ -354,9 +356,9 @@ public class HttpServer {
 			os.flush();
 		}
 
-		private void writeImageResponse(byte[] imageBytes) throws IOException {
-			String response = "HTTP/1.1 200 OK\r\n" + "Server: misha-sma-Server/2012\r\n"
-					+ "Content-Type: image/png\r\n" + "Content-Length: " + imageBytes.length + "\r\n"
+		private void writeImageResponse(byte[] imageBytes, String extention) throws IOException {
+			String response = "HTTP/1.1 200 OK\r\n" + "Server: misha-sma-Server/2012\r\n" + "Content-Type: image/"
+					+ extention + "\r\n" + "Content-Length: " + imageBytes.length + "\r\n"
 					+ "Connection: close\r\n\r\n";
 			os.write(response.getBytes());
 			os.write(imageBytes);
@@ -379,7 +381,7 @@ public class HttpServer {
 	public static void main(String[] args) throws Throwable {
 		Locale.setDefault(Locale.ENGLISH);
 		loadCaches();
-		CarriagesSeatsValidator.validate();
+		//CarriagesSeatsValidator.validate();
 		TrainsScheduler.start();
 		ServerSocket serverSocket = new ServerSocket(PORT);
 		logger.info("Server started on port " + PORT + " !!!");
