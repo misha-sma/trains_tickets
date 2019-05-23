@@ -64,6 +64,7 @@ public class StationDao {
 	}
 
 	private static void createSuggestingMap(List<String> names) {
+		createSuggestingMapForEmptyString(names);
 		for (String name : names) {
 			for (int i = 1; i <= name.length(); ++i) {
 				String prefix = name.substring(0, i).toLowerCase();
@@ -80,6 +81,19 @@ public class StationDao {
 				value.add(name);
 			}
 		}
+	}
+
+	private static void createSuggestingMapForEmptyString(List<String> names) {
+		int i = 0;
+		List<String> emptySuggesting = new LinkedList<String>();
+		for (String name : names) {
+			if (i >= MAX_SUGGESTIONS) {
+				break;
+			}
+			emptySuggesting.add(name);
+			++i;
+		}
+		SUGGESTING_MAP.put("", emptySuggesting);
 	}
 
 	public static String translit(String str) {

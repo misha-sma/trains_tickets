@@ -4,8 +4,19 @@ function autocomplete(inp) {
   var currentFocus;
   /*execute a function when someone writes in the text field:*/
   inp.addEventListener("input", function(e) {
-      var a, b, i, arr = [], val = this.value;
-      $.ajax({
+      var val = this.value;
+      addSuggesting(this, val);
+  });
+  inp.addEventListener("focus", function(e) {
+      var val = this.value;
+      if (val.length > 0) {
+          return;
+      }
+      addSuggesting(this, val);
+  });
+  function addSuggesting(thisLocal, val) {
+     var a, b, i, arr = [];
+     $.ajax({
      url: '?suggest=' + val,
      beforeSend: function(xhr) {
        if (xhr.overrideMimeType)
@@ -21,14 +32,14 @@ function autocomplete(inp) {
     });
       /*close any already open lists of autocompleted values*/
       closeAllLists();
-      if (!val) { return false;}
+      //if (!val) { return false;}
       currentFocus = -1;
       /*create a DIV element that will contain the items (values):*/
       a = document.createElement("DIV");
-      a.setAttribute("id", this.id + "autocomplete-list");
+      a.setAttribute("id", thisLocal.id + "autocomplete-list");
       a.setAttribute("class", "autocomplete-items");
       /*append the DIV element as a child of the autocomplete container:*/
-      this.parentNode.appendChild(a);
+      thisLocal.parentNode.appendChild(a);
       /*for each item in the array...*/
       for (i = 0; i < arr.length; i++) {
           /*create a DIV element for each matching element:*/
@@ -48,7 +59,7 @@ function autocomplete(inp) {
           });
           a.appendChild(b);
       }
-  });
+  }
   /*execute a function presses a key on the keyboard:*/
   inp.addEventListener("keydown", function(e) {
       var x = document.getElementById(this.id + "autocomplete-list");
@@ -102,6 +113,6 @@ function autocomplete(inp) {
 }
 /*execute a function when someone clicks in the document:*/
 document.addEventListener("click", function (e) {
-    closeAllLists(e.target);
+   // closeAllLists(e.target);
 });
 }
