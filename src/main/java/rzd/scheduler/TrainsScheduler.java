@@ -39,7 +39,7 @@ public class TrainsScheduler {
 						Calendar cal = Calendar.getInstance();
 						cal.add(Calendar.DAY_OF_MONTH, BUY_DAYS_COUNT - 1);
 						String dateLast = DateUtil.SIMPLE_DATE_FORMAT.format(cal.getTime());
-						addCarriagesAndSeats(train.getDepartureTime(), idTrain, dateLast);
+						addCarriagesAndSeats(train, idTrain, dateLast);
 						continue;
 					}
 					Calendar cal = Calendar.getInstance();
@@ -62,22 +62,21 @@ public class TrainsScheduler {
 					if (dateLast == null) {
 						logger.error("Last departure day not found!!! idTrain=" + idTrain);
 					}
-					addCarriagesAndSeats(train.getDepartureTime(), idTrain, dateLast);
+					addCarriagesAndSeats(train, idTrain, dateLast);
 				}
 				logger.info("Trains scheduler time=" + (System.currentTimeMillis() - initTime) + " ms");
 			}
 		}, initialDelay, PERIOD, TimeUnit.MILLISECONDS);
 	}
 
-	private static void addCarriagesAndSeats(Date depTimeTrain, int idTrain, String dateLast) {
-		Date depTimeTrue = getDepTime(depTimeTrain);
+	private static void addCarriagesAndSeats(Train train, int idTrain, String dateLast) {
+		Date depTimeTrue = getDepTime(train.getDepartureTime());
 		List<Carriage> carriages = CarriageDao.getCarriages(idTrain, dateLast);
-		int stagesCount = TrainDao.getStagesCount(idTrain);
 		for (Carriage carriage : carriages) {
 			carriage.setDepartureTime(depTimeTrue);
 		}
 		CarriageDao.saveCarriages(carriages);
-		SeatDao.addOneTrainSeats(carriages, stagesCount);
+		SeatDao.addOneTrainSeats(carriages, train.getStagesCount());
 	}
 
 	private static Date getDepTime(Date depTime) {

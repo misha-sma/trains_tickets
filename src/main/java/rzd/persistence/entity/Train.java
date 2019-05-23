@@ -17,4 +17,5 @@ public class Train {
 	private String departureDays;
 	private String departureStation;
 	private String destinationStation;
+	private int stagesCount;
 }

@@ -25,10 +25,11 @@ public class TrainDao {
 	private static final Logger logger = LoggerFactory.getLogger(TrainDao.class);
 
 	public static final int BATCH_SIZE = 1000;
-	public static final String TRAINS_SQL = "SELECT t1.*, trains_stations.id_station FROM "
+	public static final String TRAINS_SQL = "SELECT t2.*, t3.stations_count FROM (SELECT t1.*, trains_stations.id_station FROM "
 			+ "(SELECT trains.*, trains_stations.id_station FROM trains INNER JOIN trains_stations ON trains.id_train=trains_stations.id_train "
-			+ "AND travel_time=0) AS t1 INNER JOIN trains_stations ON t1.id_train=trains_stations.id_train AND stay_time=-1 "
-			+ "ORDER BY t1.id_train LIMIT ? OFFSET ?";
+			+ "AND travel_time=0) AS t1 INNER JOIN trains_stations ON t1.id_train=trains_stations.id_train AND stay_time=-1) "
+			+ "AS t2 INNER JOIN (SELECT id_train, count(1) AS stations_count FROM trains_stations GROUP BY id_train) AS t3 ON t2.id_train=t3.id_train "
+			+ "ORDER BY t2.id_train LIMIT ? OFFSET ?";
 	public static final Map<Integer, Train> TRAINS_MAP = new HashMap<Integer, Train>();
 
 	public static final String TRAINS_ALL_DAYS_SQL = "SELECT t1.id_train, t1.travel_time+t1.stay_time, t2.travel_time FROM trains_stations "
@@ -37,7 +38,6 @@ public class TrainDao {
 
 	public static final String TRAVEL_STAY_TIME_SQL = "SELECT travel_time+stay_time FROM trains_stations WHERE id_train=? AND id_station=?";
 	public static final String TRAVEL_TIME_SQL = "SELECT travel_time FROM trains_stations WHERE id_train=? AND id_station=?";
-	public static final String STAGES_COUNT_SQL = "SELECT count(1) FROM trains_stations WHERE id_train=?";
 	public static final String TIME_TABLE_SQL = "SELECT id_station, travel_time, stay_time FROM trains_stations WHERE id_train=? ORDER BY travel_time";
 
 	public static final String ADD_TRAIN_STATION_SQL = "INSERT INTO trains_stations (id_train, id_station, travel_time, stay_time) "
@@ -63,9 +63,10 @@ public class TrainDao {
 					String departureDays = rs.getString(4);
 					int departureStationId = rs.getInt(5);
 					int destinationStationId = rs.getInt(6);
+					int stagesCount = rs.getInt(7) - 1;
 					String departureStation = StationDao.STATIONS_ID_NAME_MAP.get(departureStationId);
 					String destinationStation = StationDao.STATIONS_ID_NAME_MAP.get(destinationStationId);
-					Train train = new Train(name, departureTime, departureDays, departureStation, destinationStation);
+					Train train = new Train(name, departureTime, departureDays, departureStation, destinationStation, stagesCount);
 					TRAINS_MAP.put(idTrain, train);
 				}
 				rs.close();
@@ -114,24 +115,6 @@ public class TrainDao {
 			logger.error(e.getMessage(), e);
 		}
 		return travelTime;
-	}
-
-	public static int getStagesCount(int idTrain) {
-		int stagesCount = 152;
-		try (Connection con = DBConnection.getDbConnection();
-				PreparedStatement ps = con.prepareStatement(STAGES_COUNT_SQL)) {
-			ps.setInt(1, idTrain);
-			ResultSet rs = ps.executeQuery();
-			if (rs.next()) {
-				stagesCount = rs.getInt(1) - 1;
-			}
-			rs.close();
-		} catch (ClassNotFoundException e) {
-			logger.error(e.getMessage(), e);
-		} catch (SQLException e) {
-			logger.error(e.getMessage(), e);
-		}
-		return stagesCount;
 	}
 
 	public static List<TimeTable> getTimeTable(int idTrain) {
