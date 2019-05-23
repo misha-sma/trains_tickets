@@ -216,8 +216,8 @@ public class HttpServer {
 										- trainTravelStayTimes.getDepartureTravelStayTime())
 								+ "</td>\n<td>" + destTime + "</td>\n");
 						if (isAllDays) {
-							builder.append("<td>\n"
-									+ "<form method='get' name='selectDate'>\n<input type=\"date\" name=\"date\">\n"
+							builder.append("<td>\n<form autocomplete=\"off\" method='get' name='selectDate'>\n"
+									+ "<input type=\"text\" name=\"date\" class=\"tcal\" value=\"\" style=\"width:200px;\">\n"
 									+ "<input type=\"hidden\" name=\"idTrain\" value=\"" + idTrain + "\">\n"
 									+ "<input type=\"hidden\" name=\"from\" value=\"" + idDepartureStation + "\">\n"
 									+ "<input type=\"hidden\" name=\"to\" value=\"" + idDestinationStation + "\">\n"
