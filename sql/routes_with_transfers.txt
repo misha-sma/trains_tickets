@@ -1,0 +1,49 @@
+-- все поезда проходящие через заданную станцию
+select id_train from trains_stations where id_station =27;
+
+-- селект на поезда между 2 станциями на все дни
+SELECT t1.id_train, t1.travel_time+t1.stay_time, t2.travel_time FROM trains_stations 
+			AS t1 INNER JOIN trains_stations AS t2 ON t1.id_station=11 AND t2.id_station=27 AND t1.id_train=t2.id_train 
+			AND t1.travel_time<t2.travel_time ORDER BY t1.id_train;
+
+
+-- все станции до которых можно доехать от заданной станции на одном поезде
+select * from trains_stations inner join (select id_train, travel_time from trains_stations where id_station =11) as t1 on trains_stations.id_train=t1.id_train and trains_stations.travel_time>t1.travel_time;
+
+-- все станции от которых можно доехать от заданной станции на одном поезде
+select * from trains_stations inner join (select id_train, travel_time from trains_stations where id_station =28) as t1 on trains_stations.id_train=t1.id_train and trains_stations.travel_time<t1.travel_time;
+
+-- все поезда и станции с одной пересадкой
+select * from (select * from trains_stations inner join (select id_train, travel_time from trains_stations where id_station =27) as t1 on trains_stations.id_train=t1.id_train and trains_stations.travel_time>t1.travel_time) as t2 inner join (select * from trains_stations inner join (select id_train, travel_time from trains_stations where id_station =28) as t3 on trains_stations.id_train=t3.id_train and trains_stations.travel_time<t3.travel_time) as t4 on t2.id_station=t4.id_station;
+
+-- то же самое без лишних полей
+select t2.id_train as id_train_from, t2.id_station, t2.travel_time, t4.id_train as id_train_to from (select trains_stations.id_train, trains_stations.id_station, trains_stations.travel_time from trains_stations inner join (select id_train, travel_time from trains_stations where id_station =27) as t1 on trains_stations.id_train=t1.id_train and trains_stations.travel_time>t1.travel_time) as t2 inner join (select trains_stations.id_train, trains_stations.id_station from trains_stations inner join (select id_train, travel_time from trains_stations where id_station =28) as t3 on trains_stations.id_train=t3.id_train and trains_stations.travel_time<t3.travel_time) as t4 on t2.id_station=t4.id_station;
+
+
+------------------------------------------------------------------
+
+
+SELECT t1.id_train, t1.travel_time+t1.stay_time, t2.travel_time FROM trains_stations 
+   AS t1 INNER JOIN trains_stations AS t2 ON t1.id_station=11 AND t2.id_station=27 AND t1.id_train=t2.id_train  
+   AND t1.travel_time<t2.travel_time ORDER BY t1.id_train;
+
+
+SELECT t1.id_train, t1.travel_time+t1.stay_time, t2.travel_time FROM (select trains_stations.* from trains_stations inner join (select id_train, travel_time from trains_stations where id_station =27) as t3 on trains_stations.id_train=t3.id_train and trains_stations.travel_time>t3.travel_time) 
+   AS t1 INNER JOIN trains_stations AS t2 ON t2.id_station=28 AND t1.id_train=t2.id_train  
+   AND t1.travel_time<t2.travel_time ORDER BY t1.id_train;
+   
+   
+   select * from (select trains_stations.* from trains_stations inner join (select id_train, travel_time from trains_stations where id_station =27) as t3 on trains_stations.id_train=t3.id_train and trains_stations.travel_time>t3.travel_time) as t4 inner join
+   (SELECT t1.id_train, t1.travel_time+t1.stay_time, t2.travel_time, t1.id_station FROM trains_stations 
+   AS t1 INNER JOIN trains_stations AS t2 ON t2.id_station=28 AND t1.id_train=t2.id_train  
+   AND t1.travel_time<t2.travel_time) as t5 on t4.id_station=t5.id_station;
+   
+   select * from (select * from trains_stations inner join (select id_train, travel_time from trains_stations where id_station =10) as t1 on trains_stations.id_train=t1.id_train and trains_stations.travel_time>t1.travel_time) as t2 inner join (select * from trains_stations inner join (select id_train, travel_time from trains_stations where id_station =340) as t3 on trains_stations.id_train=t3.id_train and trains_stations.travel_time<t3.travel_time) as t4 on t2.id_station=t4.id_station;
+   
+   
+   -----------------
+   
+   -- с минимальным travel_time первого поезда но без айдишника промежуточной станции  
+   select id_train_from, min(travel_time), id_train_to from 
+   (select t2.id_train as id_train_from, t2.id_station, t2.travel_time, t4.id_train as id_train_to from (select trains_stations.id_train, trains_stations.id_station, trains_stations.travel_time from trains_stations inner join (select id_train, travel_time from trains_stations where id_station =27) as t1 on trains_stations.id_train=t1.id_train and trains_stations.travel_time>t1.travel_time) as t2 inner join (select trains_stations.id_train, trains_stations.id_station from trains_stations inner join (select id_train, travel_time from trains_stations where id_station =28) as t3 on trains_stations.id_train=t3.id_train and trains_stations.travel_time<t3.travel_time) as t4 on t2.id_station=t4.id_station) as t5 group by id_train_from, id_train_to;
+   

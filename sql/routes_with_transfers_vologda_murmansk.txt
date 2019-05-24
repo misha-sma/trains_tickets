@@ -1,0 +1,63 @@
+ id_train | id_station | travel_time | stay_time | id_train | travel_time | id_train | id_station | travel_time | stay_time | id_train | travel_time 
+----------+------------+-------------+-----------+----------+-------------+----------+------------+-------------+-----------+----------+-------------
+      617 |         11 |         663 |         8 |      617 |           0 |       22 |         11 |         105 |         2 |       22 |        1439
+      617 |         10 |         810 |        -1 |      617 |           0 |       22 |         10 |           0 |         0 |       22 |        1439
+       71 |         11 |        1985 |         5 |       71 |        1419 |       22 |         11 |         105 |         2 |       22 |        1439
+       71 |         10 |        2126 |        -1 |       71 |        1419 |       22 |         10 |           0 |         0 |       22 |        1439
+      191 |         11 |        2482 |         5 |      191 |        1868 |       22 |         11 |         105 |         2 |       22 |        1439
+      191 |         10 |        2622 |        -1 |      191 |        1868 |       22 |         10 |           0 |         0 |       22 |        1439
+      123 |         11 |        1316 |         5 |      123 |         702 |       22 |         11 |         105 |         2 |       22 |        1439
+      123 |         10 |        1456 |        -1 |      123 |         702 |       22 |         10 |           0 |         0 |       22 |        1439
+       13 |         11 |        3794 |        10 |       13 |        3225 |       22 |         11 |         105 |         2 |       22 |        1439
+       13 |         10 |        3934 |        -1 |       13 |        3225 |       22 |         10 |           0 |         0 |       22 |        1439
+       73 |         11 |        2393 |        10 |       73 |        1824 |       22 |         11 |         105 |         2 |       22 |        1439
+       73 |         10 |        2533 |        -1 |       73 |        1824 |       22 |         10 |           0 |         0 |       22 |        1439
+(12 rows)
+
+
+
+rzd=# select t2.id_train as id_train_from, t2.id_station, t2.travel_time, t4.id_train as id_train_to from (select trains_stations.id_train, trains_stations.id_station, trains_stations.travel_time from trains_stations inner join (select id_train, travel_time from trains_stations where id_station =27) as t1 on trains_stations.id_train=t1.id_train and trains_stations.travel_time>t1.travel_time) as t2 inner join (select trains_stations.id_train, trains_stations.id_station from trains_stations inner join (select id_train, travel_time from trains_stations where id_station =28) as t3 on trains_stations.id_train=t3.id_train and trains_stations.travel_time<t3.travel_time) as t4 on t2.id_station=t4.id_station;
+ id_train_from | id_station | travel_time | id_train_to 
+---------------+------------+-------------+-------------
+           617 |         11 |         663 |          22
+           617 |         10 |         810 |          22
+            71 |         11 |        1985 |          22
+            71 |         10 |        2126 |          22
+           191 |         11 |        2482 |          22
+           191 |         10 |        2622 |          22
+           123 |         11 |        1316 |          22
+           123 |         10 |        1456 |          22
+            13 |         11 |        3794 |          22
+            13 |         10 |        3934 |          22
+            73 |         11 |        2393 |          22
+            73 |         10 |        2533 |          22
+(12 rows)
+
+select id_train_from, min(travel_time), id_train_to from 
+ (select t2.id_train as id_train_from, t2.id_station, t2.travel_time, t4.id_train as id_train_to from (select trains_stations.id_train, trains_stations.id_station, trains_stations.travel_time from trains_stations inner join (select id_train, travel_time from trains_stations where id_station =27) as t1 on trains_stations.id_train=t1.id_train and trains_stations.travel_time>t1.travel_time) as t2 inner join (select trains_stations.id_train, trains_stations.id_station from trains_stations inner join (select id_train, travel_time from trains_stations where id_station =28) as t3 on trains_stations.id_train=t3.id_train and trains_stations.travel_time<t3.travel_time) as t4 on t2.id_station=t4.id_station) as t5 group by id_train_from, id_train_to;
+ id_train_from | min  | id_train_to 
+---------------+------+-------------
+            13 | 3794 |          22
+            71 | 1985 |          22
+            73 | 2393 |          22
+           123 | 1316 |          22
+           191 | 2482 |          22
+           617 |  663 |          22
+(6 rows)
+
+-- спб - владивосток
+select id_train_from, min(travel_time), id_train_to from 
+   (select t2.id_train as id_train_from, t2.id_station, t2.travel_time, t4.id_train as id_train_to from (select trains_stations.id_train, trains_stations.id_station, trains_stations.travel_time from trains_stations inner join (select id_train, travel_time from trains_stations where id_station =10) as t1 on trains_stations.id_train=t1.id_train and trains_stations.travel_time>t1.travel_time) as t2 inner join (select trains_stations.id_train, trains_stations.id_station from trains_stations inner join (select id_train, travel_time from trains_stations where id_station =340) as t3 on trains_stations.id_train=t3.id_train and trains_stations.travel_time<t3.travel_time) as t4 on t2.id_station=t4.id_station) as t5 group by id_train_from, id_train_to;
+ id_train_from | min  | id_train_to 
+---------------+------+-------------
+            14 | 1238 |           2
+            14 |  825 |         100
+            72 | 1286 |           2
+            72 |  933 |         100
+            74 | 1238 |           2
+            74 |  825 |         100
+           124 | 1329 |           2
+           124 |  853 |         100
+           192 | 1329 |           2
+           192 |  853 |         100
+(10 rows)
