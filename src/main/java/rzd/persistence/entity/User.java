@@ -23,6 +23,17 @@ public class User {
 	private String email;
 	private Date registrationDate;
 
+	public User(long passport, String surname, String name, String patronymic, String birthdayStr, String phoneStr,
+			String email) {
+		idUser = passport;
+		this.surname = firstUp(surname);
+		this.name = firstUp(name);
+		this.patronymic = firstUp(patronymic);
+		birthday = DateUtil.string2Date(birthdayStr);
+		phone = Long.parseLong(phoneStr.replace("+", ""));
+		this.email = email;
+	}
+
 	public User(Map<String, String> params) {
 		String passportStr = params.get("passport");
 		idUser = Long.parseLong(passportStr);

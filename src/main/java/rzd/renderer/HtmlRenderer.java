@@ -7,7 +7,7 @@ import rzd.persistence.entity.Carriage;
 import rzd.persistence.entity.CarriageSeatNumber;
 import rzd.persistence.entity.Train;
 import rzd.persistence.entity.User;
-import rzd.server.HttpServer;
+import rzd.server.RzdController;
 import rzd.util.DateUtil;
 import rzd.util.Util;
 
@@ -15,7 +15,7 @@ public class HtmlRenderer {
 	public static String getHeader(int idDepartureStation, int idDestinationStation, String date) {
 		String departureStation = StationDao.STATIONS_ID_NAME_MAP.get(idDepartureStation);
 		String destinationStation = StationDao.STATIONS_ID_NAME_MAP.get(idDestinationStation);
-		String header = HttpServer.HOME_PAGE_BEGIN.replace("placeholder=\"Откуда\"",
+		String header = RzdController.HOME_PAGE_BEGIN.replace("placeholder=\"Откуда\"",
 				"value=\"" + departureStation + "\"");
 		header = header.replace("placeholder=\"Куда\"", "value=\"" + destinationStation + "\"");
 		header = header.replace("value=\"\"", "value=\"" + date + "\"");

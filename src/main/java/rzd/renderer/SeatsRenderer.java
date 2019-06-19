@@ -200,7 +200,7 @@ public class SeatsRenderer {
 		if (idSeat == null) {
 			return "<td>x</td>\n";
 		}
-		return "<td><a href=\"?idSeat=" + idSeat + "&from=" + idDepartureStation + "&to=" + idDestinationStation + "\">"
-				+ seatNumber + "</a></td>\n";
+		return "<td><a href=\"/passengerDataForm?idSeat=" + idSeat + "&from=" + idDepartureStation + "&to="
+				+ idDestinationStation + "\">" + seatNumber + "</a></td>\n";
 	}
 }

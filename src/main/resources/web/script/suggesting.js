@@ -17,7 +17,7 @@ function autocomplete(inp) {
   function addSuggesting(thisLocal, val) {
      var a, b, i, arr = [];
      $.ajax({
-     url: '?suggest=' + val,
+     url: '/suggesting?suggest=' + val,
      beforeSend: function(xhr) {
        if (xhr.overrideMimeType)
          {
