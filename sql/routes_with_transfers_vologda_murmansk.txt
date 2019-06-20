@@ -45,6 +45,36 @@ select id_train_from, min(travel_time), id_train_to from
            617 |  663 |          22
 (6 rows)
 
+with tmp_table as (
+  select t2.id_train as id_train_from, t2.id_station, t4.id_train as id_train_to, t2.travel_stay_time_from, t2.travel_time_from, t4.travel_stay_time_to, t4.travel_time_to from 
+    (select trains_stations.id_train, trains_stations.id_station, trains_stations.travel_time as travel_time_from, t1.travel_stay_time_from from trains_stations inner join 
+      (select id_train, travel_time, (travel_time+stay_time) as travel_stay_time_from from trains_stations where id_station =27) as t1 
+      on trains_stations.id_train=t1.id_train and trains_stations.travel_time>t1.travel_time
+    ) as t2 
+  inner join 
+    (select trains_stations.id_train, trains_stations.id_station, (trains_stations.travel_time+trains_stations.stay_time) as travel_stay_time_to, t3.travel_time as travel_time_to from trains_stations inner join 
+      (select id_train, travel_time from trains_stations where id_station =28) as t3 
+      on trains_stations.id_train=t3.id_train and trains_stations.travel_time<t3.travel_time
+    ) as t4
+    on t2.id_station=t4.id_station
+) 
+select tmp_table.* from tmp_table inner join 
+  (select id_train_from, min(travel_time_from) as min_time, id_train_to from tmp_table group by id_train_from, id_train_to) as t5 
+  on tmp_table.id_train_from=t5.id_train_from AND tmp_table.id_train_to=t5.id_train_to AND t5.min_time=tmp_table.travel_time_from;
+
+ id_train_from | id_station | id_train_to | travel_stay_time_from | travel_time_from | travel_stay_time_to | travel_time_to 
+---------------+------------+-------------+-----------------------+------------------+---------------------+----------------
+           617 |         11 |          22 |                     0 |              663 |                 107 |           1439
+            71 |         11 |          22 |                  1438 |             1985 |                 107 |           1439
+           191 |         11 |          22 |                  1908 |             2482 |                 107 |           1439
+           123 |         11 |          22 |                   742 |             1316 |                 107 |           1439
+            13 |         11 |          22 |                  3247 |             3794 |                 107 |           1439
+            73 |         11 |          22 |                  1846 |             2393 |                 107 |           1439
+(6 rows)
+
+
+
+
 -- спб - владивосток
 select id_train_from, min(travel_time), id_train_to from 
    (select t2.id_train as id_train_from, t2.id_station, t2.travel_time, t4.id_train as id_train_to from (select trains_stations.id_train, trains_stations.id_station, trains_stations.travel_time from trains_stations inner join (select id_train, travel_time from trains_stations where id_station =10) as t1 on trains_stations.id_train=t1.id_train and trains_stations.travel_time>t1.travel_time) as t2 inner join (select trains_stations.id_train, trains_stations.id_station from trains_stations inner join (select id_train, travel_time from trains_stations where id_station =340) as t3 on trains_stations.id_train=t3.id_train and trains_stations.travel_time<t3.travel_time) as t4 on t2.id_station=t4.id_station) as t5 group by id_train_from, id_train_to;
@@ -61,3 +91,27 @@ select id_train_from, min(travel_time), id_train_to from
            192 | 1329 |           2
            192 |  853 |         100
 (10 rows)
+
+
+with tmp_table as (select t2.id_train as id_train_from, t2.id_station, t2.travel_time, t4.id_train as id_train_to from (select trains_stations.id_train, trains_stations.id_station, trains_stations.travel_time from trains_stations inner join (select id_train, travel_time from trains_stations where id_station =27) as t1 on trains_stations.id_train=t1.id_train and trains_stations.travel_time>t1.travel_time) as t2 inner join (select trains_stations.id_train, trains_stations.id_station from trains_stations inner join (select id_train, travel_time from trains_stations where id_station =28) as t3 on trains_stations.id_train=t3.id_train and trains_stations.travel_time<t3.travel_time) as t4 on t2.id_station=t4.id_station) 
+select tmp_table.id_train_from, tmp_table.id_station, tmp_table.id_train_to from tmp_table inner join (select id_train_from, min(travel_time) as min_time, id_train_to from tmp_table group by id_train_from, id_train_to) as t5 on tmp_table.id_train_from=t5.id_train_from AND 
+tmp_table.id_train_to=t5.id_train_to AND t5.min_time=tmp_table.travel_time;
+
+
+with tmp_table as (
+  select t2.id_train as id_train_from, t2.id_station, t2.travel_time, t2.travel_stay_time_from, t4.id_train as id_train_to, t4.travel_stay_time_to, t4.travel_time_to from 
+    (select trains_stations.id_train, trains_stations.id_station, trains_stations.travel_time, t1.travel_stay_time_from from trains_stations inner join 
+      (select id_train, travel_time, (travel_time+stay_time) as travel_stay_time_from from trains_stations where id_station =27) as t1 
+      on trains_stations.id_train=t1.id_train and trains_stations.travel_time>t1.travel_time
+    ) as t2 
+  inner join 
+    (select trains_stations.id_train, trains_stations.id_station, (trains_stations.travel_time+trains_stations.stay_time) as travel_stay_time_to, t3.travel_time as travel_time_to from trains_stations inner join 
+      (select id_train, travel_time from trains_stations where id_station =28) as t3 
+      on trains_stations.id_train=t3.id_train and trains_stations.travel_time<t3.travel_time
+    ) as t4
+    on t2.id_station=t4.id_station
+) 
+select tmp_table.id_train_from, tmp_table.id_station, tmp_table.id_train_to, tmp_table.travel_stay_time_from, tmp_table.travel_time as travel_time_from, tmp_table.travel_stay_time_to, tmp_table.travel_time_to from tmp_table inner join 
+  (select id_train_from, min(travel_time) as min_time, id_train_to from tmp_table group by id_train_from, id_train_to) as t5 
+  on tmp_table.id_train_from=t5.id_train_from AND tmp_table.id_train_to=t5.id_train_to AND t5.min_time=tmp_table.travel_time;
+  
