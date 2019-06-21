@@ -32,6 +32,7 @@ import rzd.persistence.entity.Train;
 import rzd.persistence.entity.TrainTravelStayTimes;
 import rzd.persistence.entity.User;
 import rzd.renderer.HtmlRenderer;
+import rzd.renderer.OneTransferRenderer;
 import rzd.renderer.SeatsRenderer;
 import rzd.scheduler.CarriagesSeatsValidator;
 import rzd.scheduler.TrainsScheduler;
@@ -187,6 +188,22 @@ public class HttpServer {
 					String header = HtmlRenderer.getHeader(idDepartureStation, idDestinationStation, date);
 					builder.append(header);
 					builder.append("<table border=\"1\">\n");
+					List<TrainTravelStayTimes> trains = TrainDao.getTrainsByStations(idDepartureStation,
+							idDestinationStation);
+					if (trains.isEmpty()) {
+						builder.append(
+								"<tr>\n<th>Первый поезд</th>\n<th>Время отправления</th>\n<th>Время в пути до станции пересадки</th>\n<th>Время прибытия на станцию пересадки</th>\n"
+										+ "<th>Станция пересадки</th>\n<th>Время ожидания на станции пересадки</th>\n<th>Второй поезд</th>\n"
+										+ "<th>Время отправления от станции пересадки</th>\n<th>Время в пути до конечной станции</th>\n"
+										+ "<th>Время прибытия на конечную станцию</th>\n<th>Общее время в пути</th>\n<th>Дни отправления</th>\n");
+						String html = OneTransferRenderer.oneTransferRoutesSearch(idDepartureStation,
+								idDestinationStation);
+						builder.append(html);
+						builder.append("</table>\n");
+						builder.append(HOME_PAGE_END);
+						writeHtmlResponse(builder.toString());
+						return;
+					}
 					builder.append(
 							"<tr>\n<th>Поезд</th>\n<th>Время отправления</th>\n<th>Время в пути</th>\n<th>Время прибытия</th>\n");
 					boolean isAllDays = date == null || date.isEmpty();
@@ -195,8 +212,6 @@ public class HttpServer {
 					} else {
 						builder.append("<th></th>\n</tr>\n");
 					}
-					List<TrainTravelStayTimes> trains = TrainDao.getTrainsByStations(idDepartureStation,
-							idDestinationStation);
 					if (!isAllDays) {
 						trains = filterTrains4OneDay(trains, date);
 					}
@@ -340,7 +355,7 @@ public class HttpServer {
 			os.write(result.getBytes());
 			os.flush();
 		}
-		
+
 		private void writeHtmlResponse(String html) throws IOException {
 			String response = "HTTP/1.1 200 OK\r\n" + "Server: misha-sma-Server/2012\r\n"
 					+ "Content-Type: text/html\r\n" + "Connection: close\r\n\r\n";

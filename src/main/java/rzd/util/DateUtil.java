@@ -21,6 +21,7 @@ public class DateUtil {
 	public static final Map<Integer, String> DAY_OF_WEEK_MAP = new HashMap<Integer, String>();
 	public static final Map<String, Integer> DAY_OF_WEEK_MAP_REVERSE = new HashMap<String, Integer>();
 	public static final Map<String, String> DAY_OF_WEEK_MAP_ENG = new HashMap<String, String>();
+	public static final Map<Integer, Integer> DAY_OF_WEEK_MINUTES_MAP = new HashMap<Integer, Integer>();
 
 	public static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 	public static final SimpleDateFormat BIRTHDAY_FORMAT = new SimpleDateFormat("d.MM.yyyy");
@@ -30,6 +31,7 @@ public class DateUtil {
 	public static final SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm");
 
 	public static final Pattern REPLACE_DAY_OF_WEEK_PATTERN = Pattern.compile("Mon|Tue|Wed|Thu|Fri|Sat|Sun");
+	public static final String[] DAYS_OF_WEEK_ARRAY = new String[] { "вс", "пн", "вт", "ср", "чт", "пт", "сб" };
 
 	static {
 		DAY_OF_WEEK_MAP.put(1, "вс");
@@ -55,6 +57,14 @@ public class DateUtil {
 		DAY_OF_WEEK_MAP_ENG.put("Fri", "пт");
 		DAY_OF_WEEK_MAP_ENG.put("Sat", "сб");
 		DAY_OF_WEEK_MAP_ENG.put("Sun", "вс");
+
+		DAY_OF_WEEK_MINUTES_MAP.put(1, 8640);
+		DAY_OF_WEEK_MINUTES_MAP.put(2, 0);
+		DAY_OF_WEEK_MINUTES_MAP.put(3, 1440);
+		DAY_OF_WEEK_MINUTES_MAP.put(4, 2880);
+		DAY_OF_WEEK_MINUTES_MAP.put(5, 4320);
+		DAY_OF_WEEK_MINUTES_MAP.put(6, 5760);
+		DAY_OF_WEEK_MINUTES_MAP.put(7, 7200);
 	}
 
 	public static String date2StringDots(Date date) {
