@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
@@ -145,4 +146,16 @@ public class Util {
 		return builder.toString();
 	}
 
+	public static String weekDaysToString(List<String> weekDays) {
+		StringBuilder builder = new StringBuilder();
+		int i = 0;
+		for (String day : weekDays) {
+			if (i > 0) {
+				builder.append(",");
+			}
+			builder.append(day);
+			++i;
+		}
+		return builder.toString();
+	}
 }

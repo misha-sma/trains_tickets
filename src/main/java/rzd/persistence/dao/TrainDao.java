@@ -35,7 +35,7 @@ public class TrainDao {
 
 	public static final String TRAINS_ALL_DAYS_SQL = "SELECT t1.id_train, t1.travel_time+t1.stay_time, t2.travel_time FROM trains_stations "
 			+ "AS t1 INNER JOIN trains_stations AS t2 ON t1.id_station=? AND t2.id_station=? AND t1.id_train=t2.id_train "
-			+ "AND t1.travel_time<t2.travel_time ORDER BY t1.id_train";
+			+ "AND t1.travel_time<t2.travel_time";
 
 	public static final String TRAINS_ALL_DAYS_ONE_TRANSFER_SQL = "WITH tmp_table AS ("
 			+ "SELECT t2.id_train AS id_train_from, t2.id_station, t4.id_train AS id_train_to, t2.travel_stay_time_from, t2.travel_time_from, t4.travel_stay_time_to, t4.travel_time_to FROM "

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -14,6 +15,7 @@ import rzd.persistence.entity.StayTimeWithDepartureDays;
 import rzd.persistence.entity.Train;
 import rzd.persistence.entity.TrainTravelStayTimesOneTransfer;
 import rzd.util.DateUtil;
+import rzd.util.Util;
 
 public class OneTransferRenderer {
 	public static String oneTransferRoutesSearch(int idDepartureStation, int idDestinationStation) {
@@ -50,7 +52,8 @@ public class OneTransferRenderer {
 			Train trainTo = TrainDao.TRAINS_MAP.get(idTrainTo);
 
 			StayTimeWithDepartureDays stayTimeWithDD = getStayTime(trainFrom, trainTo,
-					trainTravelStayTimes.getTravelTimeFrom(), trainTravelStayTimes.getTravelStayTimeTo());
+					trainTravelStayTimes.getTravelTimeFrom(), trainTravelStayTimes.getTravelStayTimeTo(),
+					trainTravelStayTimes.getTravelStayTimeFrom());
 			builder.append("<td>" + DateUtil.formatMinutes(stayTimeWithDD.getStayTimeMinutes()) + "</td>\n");
 
 			// ----------------------------------------------------
@@ -77,16 +80,7 @@ public class OneTransferRenderer {
 					- trainTravelStayTimes.getTravelStayTimeFrom() + stayTimeWithDD.getStayTimeMinutes()
 					+ trainTravelStayTimes.getTravelTimeTo() - trainTravelStayTimes.getTravelStayTimeTo();
 			builder.append("<td>" + DateUtil.formatMinutes(totalTimeMinutes) + "</td>\n");
-
-			List<String> depDays = stayTimeWithDD.getDepartureDays();
-			StringBuilder builderDepDays = new StringBuilder();
-			for (int i = 0; i < depDays.size(); ++i) {
-				if (i > 0) {
-					builderDepDays.append(",");
-				}
-				builderDepDays.append(depDays.get(i));
-			}
-			builder.append("<td>" + builderDepDays.toString() + "</td>\n</tr>\n");
+			builder.append("<td>" + Util.weekDaysToString(stayTimeWithDD.getDepartureDays()) + "</td>\n</tr>\n");
 			rows.add(new OneTransferTrain4UI(builder.toString(), totalTimeMinutes));
 		}
 		Collections.sort(rows);
@@ -98,12 +92,12 @@ public class OneTransferRenderer {
 	}
 
 	private static StayTimeWithDepartureDays getStayTime(Train trainFrom, Train trainTo, int travelTimeFrom,
-			int travelStayTimeTo) {
+			int travelStayTimeTo, int travelStayTimeFrom) {
 		Map<String, Integer> trainFromDestMap = getTrainDestMap(trainFrom, travelTimeFrom);
 		Map<String, Integer> trainToDestMap = getTrainDestMap(trainTo, travelStayTimeTo);
 		completeTrainDestMap(trainToDestMap);
 		int minDelta = Integer.MAX_VALUE;
-		List<String> minDays = new ArrayList<String>();
+		List<String> minDays = new LinkedList<String>();
 		for (String weekDayFrom : trainFromDestMap.keySet()) {
 			int weekMinutesFrom = trainFromDestMap.get(weekDayFrom);
 			for (String weekDayTo : trainToDestMap.keySet()) {
@@ -114,14 +108,15 @@ public class OneTransferRenderer {
 				int delta = weekMinutesTo - weekMinutesFrom;
 				if (delta < minDelta) {
 					minDelta = delta;
-					minDays = new ArrayList<String>();
+					minDays = new LinkedList<String>();
 					minDays.add(weekDayFrom);
 				} else if (delta == minDelta) {
 					minDays.add(weekDayFrom);
 				}
 			}
 		}
-		return new StayTimeWithDepartureDays(minDelta, minDays);
+		return new StayTimeWithDepartureDays(minDelta,
+				DateUtil.getWeekDaysTrue(minDays, travelStayTimeFrom, trainFrom.getDepartureTime()));
 	}
 
 	private static Map<String, Integer> getTrainDestMap(Train train, int travelTime) {
@@ -156,7 +151,4 @@ public class OneTransferRenderer {
 		trainDestMap.put("вспн", minMinutes + 7 * 1440);
 	}
 
-//	private static List<String> sortWeekDays(List<String> weekDays){
-//		
-//	}
 }

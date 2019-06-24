@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URLDecoder;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
@@ -451,27 +452,9 @@ public class HttpServer {
 		if (depDays.equals("ежд")) {
 			return depDays;
 		}
-		Calendar calendarDep = Calendar.getInstance();
-		calendarDep.setTime(train.getDepartureTime());
-		calendarDep.add(Calendar.MINUTE, departureTravelStayTime);
-		int deltaDays = calendarDep.get(Calendar.DAY_OF_MONTH) - 1;
-		if (deltaDays == 0) {
-			return depDays;
-		}
-		StringBuilder builder = new StringBuilder();
-		String[] parts = depDays.split(",");
-		for (int i = 0; i < parts.length; ++i) {
-			String part = parts[i];
-			int dayOfWeekInt = DateUtil.DAY_OF_WEEK_MAP_REVERSE.get(part);
-			dayOfWeekInt += deltaDays;
-			dayOfWeekInt = dayOfWeekInt % 7;
-			dayOfWeekInt = dayOfWeekInt == 0 ? 7 : dayOfWeekInt;
-			String dayOfWeekTrue = DateUtil.DAY_OF_WEEK_MAP.get(dayOfWeekInt);
-			if (i > 0) {
-				builder.append(",");
-			}
-			builder.append(dayOfWeekTrue);
-		}
-		return builder.toString();
+		String[] weekDays = depDays.split(",");
+		List<String> weekDaysTrue = DateUtil.getWeekDaysTrue(Arrays.asList(weekDays), departureTravelStayTime,
+				train.getDepartureTime());
+		return Util.weekDaysToString(weekDaysTrue);
 	}
 }

@@ -5,6 +5,8 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -31,9 +33,12 @@ public class DateUtil {
 	public static final SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm");
 
 	public static final Pattern REPLACE_DAY_OF_WEEK_PATTERN = Pattern.compile("Mon|Tue|Wed|Thu|Fri|Sat|Sun");
-	public static final String[] DAYS_OF_WEEK_ARRAY = new String[] { "вс", "пн", "вт", "ср", "чт", "пт", "сб" };
+	public static final String[] DAYS_OF_WEEK_ARRAY = new String[] { "пн", "вт", "ср", "чт", "пт", "сб", "вс" };
+	public static final List<String> DAYS_EZD_LIST = new LinkedList<String>();
 
 	static {
+		DAYS_EZD_LIST.add("ежд");
+
 		DAY_OF_WEEK_MAP.put(1, "вс");
 		DAY_OF_WEEK_MAP.put(2, "пн");
 		DAY_OF_WEEK_MAP.put(3, "вт");
@@ -148,4 +153,35 @@ public class DateUtil {
 		return builder.toString();
 	}
 
+	public static List<String> getWeekDaysTrue(List<String> weekDays, int travelStayTime, Date departureTime) {
+		if (weekDays.size() == 7) {
+			return DAYS_EZD_LIST;
+		}
+		Calendar calendarDep = Calendar.getInstance();
+		calendarDep.setTime(departureTime);
+		calendarDep.add(Calendar.MINUTE, travelStayTime);
+		int deltaDays = calendarDep.get(Calendar.DAY_OF_MONTH) - 1;
+		if (deltaDays == 0) {
+			return sortWeekDays(weekDays);
+		}
+		List<String> minDaysTrue = new LinkedList<String>();
+		for (String day : weekDays) {
+			int dayOfWeekInt = DAY_OF_WEEK_MAP_REVERSE.get(day);
+			dayOfWeekInt += deltaDays;
+			dayOfWeekInt = dayOfWeekInt % 7;
+			dayOfWeekInt = dayOfWeekInt == 0 ? 7 : dayOfWeekInt;
+			minDaysTrue.add(DAY_OF_WEEK_MAP.get(dayOfWeekInt));
+		}
+		return sortWeekDays(minDaysTrue);
+	}
+
+	public static List<String> sortWeekDays(List<String> weekDays) {
+		List<String> weekDaysSorted = new LinkedList<String>();
+		for (String day : DAYS_OF_WEEK_ARRAY) {
+			if (weekDays.contains(day)) {
+				weekDaysSorted.add(day);
+			}
+		}
+		return weekDaysSorted;
+	}
 }
