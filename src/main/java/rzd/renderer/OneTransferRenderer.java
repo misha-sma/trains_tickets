@@ -3,6 +3,7 @@ package rzd.renderer;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,10 +19,21 @@ import rzd.util.DateUtil;
 import rzd.util.Util;
 
 public class OneTransferRenderer {
-	public static String oneTransferRoutesSearch(int idDepartureStation, int idDestinationStation) {
+	public static final int MAX_TRANSFERS_TRAINS_COUNT = 20;
+
+	public static String oneTransferRoutesSearch(int idDepartureStation, int idDestinationStation, String dateStr) {
 		List<TrainTravelStayTimesOneTransfer> trains = TrainDao.getTrainsByStationsOneTransfer(idDepartureStation,
 				idDestinationStation);
 		List<OneTransferTrain4UI> rows = new ArrayList<OneTransferTrain4UI>();
+		boolean isAllDays = dateStr == null || dateStr.isEmpty();
+		String depDayWeek = null;
+		if (!isAllDays) {
+			Date date = DateUtil.string2Date(dateStr);
+			Calendar calendarDep = Calendar.getInstance();
+			calendarDep.setTime(date);
+			int depDayWeekInt = calendarDep.get(Calendar.DAY_OF_WEEK);
+			depDayWeek = DateUtil.DAY_OF_WEEK_MAP.get(depDayWeekInt);
+		}
 		for (TrainTravelStayTimesOneTransfer trainTravelStayTimes : trains) {
 			int idTrainFrom = trainTravelStayTimes.getIdTrainFrom();
 			Train trainFrom = TrainDao.TRAINS_MAP.get(idTrainFrom);
@@ -29,6 +41,17 @@ public class OneTransferRenderer {
 					trainTravelStayTimes.getTravelStayTimeFrom());
 			String destTimeFrom = DateUtil.addMinutesToDate(trainFrom.getDepartureTime(),
 					trainTravelStayTimes.getTravelTimeFrom());
+			int idTrainTo = trainTravelStayTimes.getIdTrainTo();
+			Train trainTo = TrainDao.TRAINS_MAP.get(idTrainTo);
+			StayTimeWithDepartureDays stayTimeWithDD = getStayTime(trainFrom, trainTo,
+					trainTravelStayTimes.getTravelTimeFrom(), trainTravelStayTimes.getTravelStayTimeTo(),
+					trainTravelStayTimes.getTravelStayTimeFrom());
+			List<String> departureDays = stayTimeWithDD.getDepartureDays();
+			if (!isAllDays && !departureDays.contains(depDayWeek)
+					&& !(departureDays.size() == 1 && departureDays.get(0).equals("ежд"))) {
+				continue;
+			}
+
 			StringBuilder builder = new StringBuilder();
 			builder.append("<tr><td>")
 					.append("<a href=\"?idTrain=" + idTrainFrom + "&from=" + idDepartureStation + "&to="
@@ -47,13 +70,6 @@ public class OneTransferRenderer {
 			String transferStationName = StationDao.STATIONS_ID_NAME_MAP
 					.get(trainTravelStayTimes.getTransferIdStation());
 			builder.append("<td>" + transferStationName + "</td>\n");
-
-			int idTrainTo = trainTravelStayTimes.getIdTrainTo();
-			Train trainTo = TrainDao.TRAINS_MAP.get(idTrainTo);
-
-			StayTimeWithDepartureDays stayTimeWithDD = getStayTime(trainFrom, trainTo,
-					trainTravelStayTimes.getTravelTimeFrom(), trainTravelStayTimes.getTravelStayTimeTo(),
-					trainTravelStayTimes.getTravelStayTimeFrom());
 			builder.append("<td>" + DateUtil.formatMinutes(stayTimeWithDD.getStayTimeMinutes()) + "</td>\n");
 
 			// ----------------------------------------------------
@@ -80,13 +96,15 @@ public class OneTransferRenderer {
 					- trainTravelStayTimes.getTravelStayTimeFrom() + stayTimeWithDD.getStayTimeMinutes()
 					+ trainTravelStayTimes.getTravelTimeTo() - trainTravelStayTimes.getTravelStayTimeTo();
 			builder.append("<td>" + DateUtil.formatMinutes(totalTimeMinutes) + "</td>\n");
-			builder.append("<td>" + Util.weekDaysToString(stayTimeWithDD.getDepartureDays()) + "</td>\n</tr>\n");
+			builder.append("<td>" + (isAllDays ? Util.weekDaysToString(departureDays) : "") + "</td>\n</tr>\n");
 			rows.add(new OneTransferTrain4UI(builder.toString(), totalTimeMinutes));
 		}
 		Collections.sort(rows);
 		StringBuilder builder = new StringBuilder();
-		for (OneTransferTrain4UI row : rows) {
-			builder.append(row.getHtml());
+		for (int i = 0; i < rows.size() && i < MAX_TRANSFERS_TRAINS_COUNT; ++i) {
+			String rowStr = (i % 2 == 0) ? rows.get(i).getHtml()
+					: rows.get(i).getHtml().replace("<tr>", "<tr style=\"background-color:#E5E5E5;\">");
+			builder.append(rowStr);
 		}
 		return builder.toString();
 	}

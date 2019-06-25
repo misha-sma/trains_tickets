@@ -193,12 +193,12 @@ public class HttpServer {
 							idDestinationStation);
 					if (trains.isEmpty()) {
 						builder.append(
-								"<tr>\n<th>Первый поезд</th>\n<th>Время отправления</th>\n<th>Время в пути до станции пересадки</th>\n<th>Время прибытия на станцию пересадки</th>\n"
-										+ "<th>Станция пересадки</th>\n<th>Время ожидания на станции пересадки</th>\n<th>Второй поезд</th>\n"
-										+ "<th>Время отправления от станции пересадки</th>\n<th>Время в пути до конечной станции</th>\n"
-										+ "<th>Время прибытия на конечную станцию</th>\n<th>Общее время в пути</th>\n<th>Дни отправления</th>\n");
+								"<tr>\n<th>Первый поезд</th>\n<th>Время отправления</th>\n<th>Время в пути до ст пересадки</th>\n<th>Время приб на ст пересадки</th>\n"
+										+ "<th>Ст пересадки</th>\n<th>Время ожидания на ст пересадки</th>\n<th>Второй поезд</th>\n"
+										+ "<th>Время отправл от ст пересадки</th>\n<th>Время в пути до конечной ст</th>\n"
+										+ "<th>Время приб на конечную ст</th>\n<th>Общее время в пути</th>\n<th>Дни отправления</th>\n");
 						String html = OneTransferRenderer.oneTransferRoutesSearch(idDepartureStation,
-								idDestinationStation);
+								idDestinationStation, date);
 						builder.append(html);
 						builder.append("</table>\n");
 						builder.append(HOME_PAGE_END);
@@ -271,9 +271,12 @@ public class HttpServer {
 					builder.append("<table>\n");
 					builder.append(
 							"<tr>\n<th>Станция</th>\n<th>Прибытие</th>\n<th>Стоянка</th>\n<th>Отправление</th>\n<th>Время в пути</th>\n</tr>\n");
+					int i = 0;
 					for (TimeTable tt : timeTable) {
 						String color = tt.getIdStation() == idDepartureStation
-								|| tt.getIdStation() == idDestinationStation ? " style=\"background-color:lime;\"" : "";
+								|| tt.getIdStation() == idDestinationStation ? " style=\"background-color:lime;\""
+										: i % 2 == 0 ? "" : " style=\"background-color:#E5E5E5;\"";
+						++i;
 						// название станции
 						builder.append("<tr" + color + "><td>" + StationDao.STATIONS_ID_NAME_MAP.get(tt.getIdStation())
 								+ "</td>");
