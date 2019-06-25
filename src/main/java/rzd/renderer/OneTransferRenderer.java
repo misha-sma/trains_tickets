@@ -3,7 +3,6 @@ package rzd.renderer;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,14 +25,7 @@ public class OneTransferRenderer {
 				idDestinationStation);
 		List<OneTransferTrain4UI> rows = new ArrayList<OneTransferTrain4UI>();
 		boolean isAllDays = dateStr == null || dateStr.isEmpty();
-		String depDayWeek = null;
-		if (!isAllDays) {
-			Date date = DateUtil.string2Date(dateStr);
-			Calendar calendarDep = Calendar.getInstance();
-			calendarDep.setTime(date);
-			int depDayWeekInt = calendarDep.get(Calendar.DAY_OF_WEEK);
-			depDayWeek = DateUtil.DAY_OF_WEEK_MAP.get(depDayWeekInt);
-		}
+		String depDayWeek = isAllDays ? null : DateUtil.getDayOfWeek(dateStr);
 		for (TrainTravelStayTimesOneTransfer trainTravelStayTimes : trains) {
 			int idTrainFrom = trainTravelStayTimes.getIdTrainFrom();
 			Train trainFrom = TrainDao.TRAINS_MAP.get(idTrainFrom);
